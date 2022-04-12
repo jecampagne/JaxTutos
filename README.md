@@ -30,6 +30,7 @@ pip install jaxopt==0.3.1
 pip install optax==0.0.1
 pip install corner==2.2.1
 pip install arviz==0.11.4
+pip install GPy==1.10.0
 ```
 
 Un petit test de la version de `jaxlib` ...
