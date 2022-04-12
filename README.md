@@ -25,7 +25,7 @@ Selon l'ordre suivant vous allez procéder à l'installation de l'environement C
 conda create -n JaxTutos python=3.8
 conda activate JaxTutos
 pip install --upgrade "jax[cuda]>=0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
-pip install numpyro==0.8.0
+pip install numpyro==0.9.1
 pip install jaxopt==0.3.1
 pip install optax==0.0.1
 pip install corner==2.2.1
