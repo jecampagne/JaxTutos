@@ -7,14 +7,14 @@ Voir sa version via
 
 Donc procédez selon l'ordre suivant à l'installation de l'environement Conda `jaxTutos`
 ```
-conda create -n jaxTutos python=3.8
-conda activate jaxTutos
-pip install "jax[cuda]==0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+conda create -n JaxTutos python=3.8
+conda activate JaxTutos
+pip --upgrade "jax[cuda]>=0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+pip install numpyro==0.8.0
 pip install jaxopt==0.3.1
 pip install optax==0.0.1
-conda install -c conda-forge numpyro=0.8.0
 pip install corner==2.2.1
-conda install -c conda-forge arviz=0.11.4
+pip install arviz==0.11.4
 ```
 
 test jaxlib...
@@ -35,9 +35,9 @@ Maintenant il nous faut procéder à l'édition/création de quelques fichiers a
 
 ![image](https://user-images.githubusercontent.com/20539759/162920000-4c787b99-e46e-4068-9171-9b7dee2aa5d9.png)
 
-![image](https://user-images.githubusercontent.com/20539759/162920397-7abd8717-5394-47ba-82f1-531aa82442b2.png)
 
-![image](https://user-images.githubusercontent.com/20539759/162920544-bc0c2578-df35-4cc8-bb57-c09df457737c.png)
+![image](https://user-images.githubusercontent.com/20539759/162924541-8a69641e-b85c-4e37-976e-d8cac5cf9a3b.png)
+
 
 ![image](https://user-images.githubusercontent.com/20539759/162920945-08b645f2-d028-43b0-9faa-d199b8fac1ba.png)
 
