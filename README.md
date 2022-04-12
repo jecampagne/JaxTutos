@@ -35,22 +35,23 @@ python -c "import jaxlib; print(jaxlib.__version__)"
 ```
 
 ## Kernel Jupyter `JaxTutos` pour les notebooks
-Maintenant il nous faut procéder à l'édition/création de quelques fichiers afin de pouvoir activer l'environement `jaxTutos` sur la plateforme des notebooks du CC.
+Maintenant il nous faut procéder à l'édition/création de quelques fichiers afin de pouvoir activer l'environement `JaxTutos` sur la plateforme des notebooks du CC.
 
-Dans votre espace HOME du CC je suppose qu'au moins vous avez le directory `~/.local/share/jupyter` sinon il faudra voir comment le créer. Ensuite
+Dans votre espace HOME du CC, je suppose que vous avez le directory `~/.local/share/jupyter` sinon il faudra voir comment le créer. Ensuite,
 ```
 cd  ~/.local/share/jupyter
 mkdir kernels      # s'il n'existe pas déjà
 mkdir JaxTutos
+cd JaxTutos
 ```
 
-Copiez dans ce directory les deux fichiers qui sont venus avec le `git clone`
+Copiez dans directory  `~/.local/share/jupyter/kernels/JaxTutos` les deux fichiers qui sont venus avec le `git clone`
 ```
 jupyter-helper.sh
 kernel.json
 ```
 Il faut maintenant éditer ces 2 fichiers afin de tuner les chaines **"A REMPLACER"**. 
-Commençons par `jupyter-helper.sh`
+Commençons par `jupyter-helper.sh` où il faut renseigner où se trouve le script `conda.sh`:
 ```bash
 #!/bin/bash
 
@@ -62,7 +63,8 @@ conda activate JaxTutos
 exec python -m ipykernel_launcher "$@"
 ```
 
-puis enchainons avec `kernel.json`:
+Enchainons avec `kernel.json` où il faut renseigner le path complet de
+`~/.local/share/jupyter/kernels/JaxTutos/jupyter-helper.sh` (**ne pas utilser $HOME ou d'autres variables d'environement**:
 ```json
 {
   "display_name": "JaxTutos",
@@ -74,7 +76,7 @@ puis enchainons avec `kernel.json`:
   ]
 }
 ```
-Maintenant, nous allons procéder au login sur la plateforme des notebooks du CC et voir si l'installation précédente est correcte. Il nous faudra cependant effectuer un dernier ajustement des PATH Python. 
+Maintenant, nous allons procéder au login sur la plateforme des notebooks du CC, et voir si l'installation précédente est correcte. Il nous faudra cependant effectuer un dernier ajustement des PATH Python avant d'utilser les notebooks.
 
 # Login sur la plateforme des notebooks au CC
 ![image](https://user-images.githubusercontent.com/20539759/162919652-c788af2a-0698-4d74-8bd0-154918bd6e1e.png)
