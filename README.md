@@ -150,6 +150,18 @@ Les procédures de Start/reStart/Arrêt/Reconnection... se font via le panel sui
 
 ![image](https://user-images.githubusercontent.com/20539759/162920945-08b645f2-d028-43b0-9faa-d199b8fac1ba.png)
 
+# Docs de packages
+- JAX: https://jax.readthedocs.io
+- numpy : https://numpy.org/doc/stable/reference/index.html
+- Numpyro : https://num.pyro.ai/en/stable/getting_started.html#what-is-numpyro
+- arviz : https://arviz-devs.github.io/arviz/index.html
+- matplotlib : https://matplotlib.org/stable/index.html
+- JaxOpt: https://jaxopt.github.io/stable/
+- scikit-learn = https://scikit-learn.org/stable/index.html
+
+- Anaconda : https://docs.anaconda.com/anaconda/install/index.html
+- environement anaconda: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
+- PIP : https://docs.python.org/fr/3.8/installing/index.html#basic-usage
 
 
 
