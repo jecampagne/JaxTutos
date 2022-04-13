@@ -50,7 +50,7 @@ def plot_params_kde(samples,hdi_probs=[0.393, 0.865, 0.989],
         len_max = np.max([len(value) for name, value in samples.items()])
         if (len_max-len_min)>0.01*len_max:
             print(f"Warning: pcut leads to min/max spls size = {len_min}/{len_max}")
-            samples = {name:value[:len_min] for name, value in samples.items()}
+        samples = {name:value[:len_min] for name, value in samples.items()}
     
     axs= az.plot_pair(
             samples,
