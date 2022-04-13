@@ -1,6 +1,9 @@
 
 import numpy as np
 
+from functools import partial
+
+
 from typing import Union, Dict, Callable, Optional, Tuple
 import jax
 import jaxopt
@@ -29,24 +32,11 @@ else:
     clear_cache = jax._src.dispatch._xla_callable.cache_clear
 
 
+@jit
 def _sqrt(x, eps=1e-12):
     return jnp.sqrt(x + eps)
 
-def square_scaled_distance(X, Z,lengthscale = 1.):
-    """
-    Computes a square of scaled distance, :math:`\|\frac{X-Z}{l}\|^2`,
-    between X and Z are vectors with :math:`n x num_features` dimensions
-    """
-    scaled_X = X / lengthscale
-    scaled_Z = Z / lengthscale
-    X2 = (scaled_X ** 2).sum(1, keepdims=True)
-    Z2 = (scaled_Z ** 2).sum(1, keepdims=True)
-    XZ = jnp.matmul(scaled_X, scaled_Z.T)
-    r2 = X2 - 2 * XZ + Z2.T
-    return r2.clip(0)
-def _sqrt(x, eps=1e-12):
-    return jnp.sqrt(x + eps)
-
+@jit
 def square_scaled_distance(X, Z,lengthscale = 1.):
     """
     Computes a square of scaled distance, :math:`\|\frac{X-Z}{l}\|^2`,
@@ -60,6 +50,7 @@ def square_scaled_distance(X, Z,lengthscale = 1.):
     r2 = X2 - 2 * XZ + Z2.T
     return r2.clip(0)
 
+@jit
 def kernel_RBF(X: jnp.ndarray, 
                Z: jnp.ndarray,  
                params: Dict[str, jnp.ndarray],
@@ -247,7 +238,7 @@ class GaussProc:
         
         
         
-    
+    @partial(jit, static_argnums=(0,))
     def get_mvn_posterior_cholesky(self,
                 rng_key:jnp.array, 
                 X_train: jnp.ndarray, y_train: jnp.ndarray, 
@@ -265,20 +256,27 @@ class GaussProc:
             args = [X_train, params] if self.mean_fn_prior else [X_train]
             y_residual -= self.mean_fn(*args).squeeze()
         # compute kernel matrices for train and test data
-        k_pp = self.kernel(X_new, X_new, params, jitter=0.0)    # was with "noise)" but certainly a bug
+        k_pp = self.kernel(X_new, X_new, params, jitter=0.0)
         k_pX = self.kernel(X_new, X_train, params, jitter=0.0)
         k_XX = self.kernel(X_train, X_train, params, noise)
         # compute the predictive covariance and mean
-        chol_XX = jsc.linalg.cholesky(k_XX, lower=True)
-        kinv_XX_y = jsc.linalg.solve_triangular(
-            chol_XX.T, jsc.linalg.solve_triangular(chol_XX, y_residual, lower=True))
+        ####        chol_XX = jsc.linalg.cholesky(k_XX, lower=True)
+        #kinv_XX_y = jsc.linalg.solve_triangular(
+        #    chol_XX.T, jsc.linalg.solve_triangular(chol_XX, y_residual, lower=True))
+        chol_XX = jax.lax.linalg.cholesky(k_XX)
+
+        kinv_XX_y = jax.lax.linalg.triangular_solve(
+            chol_XX.T, jax.lax.linalg.triangular_solve(chol_XX, y_residual, lower=True,  left_side=True),
+            left_side=True)
+
 
         mean = jnp.matmul(k_pX, kinv_XX_y)   # nb. K_pX = K(X_new, X_train) sometimes the transpose is used
         if  self.mean_fn is not None:
             args = [X_new, params] if self.mean_fn_prior else [X_new]
             mean += self.mean_fn(*args).squeeze()
             
-        v = jsc.linalg.solve_triangular(chol_XX, k_pX.T, lower=True)
+        #v = jsc.linalg.solve_triangular(chol_XX, k_pX.T, lower=True)
+        v = jax.lax.linalg.triangular_solve(chol_XX, k_pX.T, lower=True, left_side=True)
         cov = k_pp - jnp.dot(v.T, v)
         
         sigma = jnp.sqrt(jnp.clip(jnp.diag(cov), a_min=0.0)) 
@@ -287,7 +285,7 @@ class GaussProc:
             
         return mean, sigma
 
-    
+    @partial(jit, static_argnums=(0,))
     def predict(self, rng_key: jnp.ndarray, 
                 X_train: jnp.ndarray, y_train: jnp.ndarray, 
                 X_new: jnp.ndarray,
@@ -303,16 +301,19 @@ class GaussProc:
         num_samples=samples[list(samples.keys())[0]].shape[0]
         
         
-        # do prediction
+        # do prediction        
         
         vmap_args = (
             jax.random.split(rng_key, num_samples),
             samples,
             jnp.array([noise]*num_samples) if noise is not None else samples["noise"]
         )
-        means, predictions = vmap(
+        
+        
+        
+        means, predictions = jit(vmap(
             lambda rng_key, samples, noise: self.get_mvn_posterior_cholesky(
                 rng_key, X_train, y_train, X_new, samples, noise)
-            )(*vmap_args)
+            ))(*vmap_args)
         
         return means, predictions 
