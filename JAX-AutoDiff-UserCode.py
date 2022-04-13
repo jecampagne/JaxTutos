@@ -255,7 +255,7 @@ res_cc=quadIntegral(jax_funcN,ja,jb,quad)
 np.allclose(res_cc,res_sim,rtol=0.,atol=1e-6)  # atol=1e-7 => False
 
 
-# ## Usage de  `jax.lax.scan`  https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.scan.html
+# ## Usage de  [jax.lax.scan](https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.scan.html)
 # ```python
 # def scan(f, init, xs):
 #   carry = init
@@ -703,8 +703,11 @@ plt.grid();
 # - la différentiation d'algorithmes complexes est possible s'ils sont écrits en JAX
 # - des études complexes de dépendance vis-à-vis de paramètrs sont possibles assez simplement
 # - usage pratique des PyTree user
+# - `immutabilité`
 # - `jax.scipy` implémente des fonctionalités de`Scipy`
 # - `jax.lax.scan`, `jax.lax.switch`
 # - le benchmarking demande de l'attention.
+
+
 
 

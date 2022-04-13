@@ -31,7 +31,9 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 # -
 
-# # Ensemble de Julia
+# # Thème: se passer de boucle for/while ...
+
+# # Les fractales de Julia
 
 # $$
 # \Large
@@ -43,14 +45,15 @@ from matplotlib import pyplot as plt
 # $$
 # Dés que $(x_n,y_n)$ sort du disque de centre $(0,0)$ et de rayon $2$ on arrête la récursion, ainsi que si $n$ atteint une valeur maximale arbitraire signifiant alors que le pixel $(x_0,y_0)$ appartient à la fractale de Julia. Suivant le couple $(c_x,c_y)$ on obtient des fratales différents.
 
-MAX_ITERATION = 150
+# # Une implémentation simple en Numpy
 
-XMIN, XMAX, YMIN, YMAX = -1.25, 1.25, -1.25, 1.25
-
-LARGEUR, HAUTEUR = 512, 512
+XMIN, XMAX, YMIN, YMAX = -1.25, 1.25, -1.25, 1.25   # le cadre physique
+LARGEUR, HAUTEUR = 512, 512                         # nmbre de pixels 512x512
+MAX_ITERATION = 150  # un paramètre de l'algo
 
 cx, cy = 0.285, 0.01
 
+# l'image finale
 Pixels = np.zeros(shape=(LARGEUR, HAUTEUR))
 
 for iy in range(HAUTEUR):
@@ -76,6 +79,8 @@ for iy in range(HAUTEUR):
 plt.figure(figsize=(15,15))
 plt.imshow(Pixels,cmap=mpl.cm.jet)
 
+# # Une implémentation JAX
+
 # ```python
 # jax.lax.while_loop(cond_fun, body_fun, init_val) 
 # ```
@@ -90,11 +95,9 @@ plt.imshow(Pixels,cmap=mpl.cm.jet)
 # ```
 
 
-if jax.__version__ < '0.2.26':
-    clear_cache = jax.interpreters.xla._xla_callable.cache_clear
-else:
-    clear_cache = jax._src.dispatch._xla_callable.cache_clear
-
+# + [markdown] tags=[]
+# ## prenons un exemple: notez au passage l'usage de [jax.lax.cond](https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.cond.html?highlight=jax.lax.cond#jax.lax.cond)
+# -
 
 def f(x,y):
     return jax.lax.cond(x>1,lambda p: p, lambda p: p**2,operand=y)
