@@ -79,7 +79,21 @@ for iy in range(HAUTEUR):
 plt.figure(figsize=(15,15))
 plt.imshow(Pixels,cmap=mpl.cm.jet)
 
+
 # # Une implémentation JAX
+
+# + [markdown] tags=[]
+# # usage de [jax.lax.cond](https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.cond.html?highlight=jax.lax.cond#jax.lax.cond)
+# -
+
+def f(x,y):
+    return jax.lax.cond(x>1,lambda p: p, lambda p: p**2,operand=y)
+
+
+vf = jax.vmap(jax.vmap(f, in_axes=(None, 0)), in_axes=(0, None))
+
+vf(jnp.array([1,2]),jnp.array([0.,2.,3.]))
+
 
 # ```python
 # jax.lax.while_loop(cond_fun, body_fun, init_val) 
@@ -93,21 +107,6 @@ plt.imshow(Pixels,cmap=mpl.cm.jet)
 #     val = body_fun(val)
 #   return val
 # ```
-
-
-# + [markdown] tags=[]
-# ## prenons un exemple: notez au passage l'usage de [jax.lax.cond](https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.cond.html?highlight=jax.lax.cond#jax.lax.cond)
-# -
-
-def f(x,y):
-    return jax.lax.cond(x>1,lambda p: p, lambda p: p**2,operand=y)
-
-
-
-vf = jax.vmap(jax.vmap(f, in_axes=(None, 0)), in_axes=(0, None))
-
-vf(jnp.array([1,2]),jnp.array([0.,2.,3.]))
-
 
 #clear_cache()
 def test(args_vars):

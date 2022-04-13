@@ -238,6 +238,8 @@ def f(p,x):
     return p["a"]**2 + p["b"]*x
 
 
+# ## Vectorization partielle: `in-axes`
+
 print(grad(f)({"a":3.,"b":1.},10))
 print(vmap(f, in_axes=({"a": None, "b": 0},None))({"a":1.,"b":jnp.array([1.,2.,3.])},10))
 
@@ -308,6 +310,7 @@ show_example(my_params)
 # - L'autofifferentiation: c'est pas compliqué (`grad`, `jacfwd`, `hessian`)
 # - `jit` permet d'accélérer le code (compilation au vol)
 # - `vmap` permet de vectoriser l'appel de fonctions (nb. il existe `pmap` pour la paraléllisation sur plusieurs devices)
+# - vectorization partielle `in_axis`
 # - On peut utiliser (grad/vmap...) ses structures autres que les arrays: tuple, liste, dico et user PyTree
 
 # # Exercice:
