@@ -36,47 +36,49 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 mpl.rc('image', cmap='jet')
 mpl.rcParams['font.size'] = 18
-mpl.rcParams["font.family"] = "Times New Roman"
-# -
-
-if jax.__version__ < '0.2.26':
-    clear_cache = jax.interpreters.xla._xla_callable.cache_clear
-else:
-    clear_cache = jax._src.dispatch._xla_callable.cache_clear
-clear_cache()
 
 
 # + [markdown] tags=[]
-# # Auto-diff sur des algorithmes User
+# # Le thème: Auto-différentiation appliquée sur des algorithmes
 # -
 
-# ## Example de l'algorithme recursif de l'extraction de racine carrée.
+# ## Example de l'algorithme recursif d'extraction de la racine carrée d'un nombre
 
-# +
-# version Numpy simple
+# ### version Numpy simple
+
 def sqrt_rec(x):
     val = x
     for i in range(0,10):
         val = (val+x/val)/2.
     return val
 
-# version JAX tout aussi simple
+
+# ### version JAX tout aussi simple: on bannit cependant l'usage de la boucle for
+
 @jit
 def jax_sqrt_rec(x):
+    
+    # struture: val = body(i,val)
     def body(i,val):
         return (val+x/val)/2.
+
+    # struture: val =  loop(i_start, i_end, function, initialisation)
     return jax.lax.fori_loop(0,10,body,x)
 
 
+# ## On applique le gradient que l'on vectorize 
 
-# -
+vgradsqrt = vmap(grad(jax_sqrt_rec))
 
+# +
 plt.figure(figsize=(8,8))
 x = jnp.arange(0,5,0.01)
 plt.plot(x, sqrt_rec(x), label=r"$f(x)=\sqrt{x}$ (algo Numpy)")
 plt.plot(x, jax_sqrt_rec(x), lw=3,ls='--', label=r"$f(x)$ (algo JAX)")
 plt.plot(x, jnp.sqrt(x), lw=3,ls='--', label=r"$f(x)$ (True)")
-plt.plot(x, vmap(grad(jax_sqrt_rec))(x), label=r"$f^\prime(x)$ (Diff. algo JAX)")
+
+plt.plot(x, vgradsqrt(x), label=r"$f^\prime(x)$ (Diff. algo JAX)")
+
 #plt.plot(x, vmap(grad(root))(x), label=r"$f^\prime(x)$ (Diff. algo Numpy)")  # Tout a fait possible mais moins Jax-idiom
 plt.plot(x, 1/(2*jnp.sqrt(x)), lw=3,ls='--',label=r"$f^\prime(x)$ (True)")
 plt.legend()
@@ -84,17 +86,19 @@ plt.grid();
 
 
 # +
-#jax.make_jaxpr(jax_root)(1.)
+# Si vous êtes curieux: jax.make_jaxpr(jax_sqrt_rec)(1.)
 # -
 
-# # Integration
+# # Code d'intégration de Simpson
+# ![image.png](attachment:17893afa-5ef7-4526-8d05-2034bebca58e.png)
+# avec $n$ pair
 
 # Version Numpy
-def simps(f, a, b, N, f_args=(), f_kargs={}):
-    #N doit etre paire
+def simps(f, a, b, N):
+    assert N%2==0, f"use N even but get {N}"
     dx = (b - a) / N
     x = np.linspace(a, b, N + 1)
-    y = f(x, *f_args, **f_kargs)
+    y = f(x)
     w = np.ones_like(y)
     w[2:-1:2] = 2.
     w[1::2]   = 4.
@@ -102,27 +106,14 @@ def simps(f, a, b, N, f_args=(), f_kargs={}):
     return S
 
 
-def ftest(a,b,N):
-    x = jnp.linspace(a, b, N + 1) # xi = a + i * (b-a)/N
-    return jnp.sum(x) # Sum_i=0^N xi = N*a + (N+1)*(b-a)/2
-
-
-ftest(0.,1.,10)
-
-gtest = lambda x: ftest(0.,x,10)
-
-gtest(2.)
-
-grad(gtest)(2.)
-
-
 #version JAX
-@partial(jit, static_argnums=(0,3,4,5))  # f et N ne seront des vecteurs
-def jax_simps(f, a,b, N=512, f_args=(), f_kargs={}):
+@partial(jit, static_argnums=(0,3))  # f et N ne seront des vecteurs
+def jax_simps(f, a,b, N=512):
+    assert N%2==0, f"use N even but get {N}"
     #N doit etre paire
     dx = (b - a) / N
     x = jnp.linspace(a, b, N + 1)
-    y = f(x, *f_args, **f_kargs)
+    y = f(x)
     w = jnp.ones_like(y)
     w = w.at[2:-1:2].set(2.)     # w est immutable
     w = w.at[1::2].set(4.)
@@ -143,10 +134,12 @@ print(jax_simps(func, a, b, N=2**10))
 
 sc.special.gamma(1.+1./10)*(1.-sc.special.gammaincc(1.+1./10,0.5))
 
+# ### `jax.scipy` implémente un certain nombre de fonctionalités de `Scipy` mais pas toutes.
+
 print(jnp.exp(jsc.special.gammaln(1.+1./10)) *(1.-jsc.special.gammaincc(1.+1./10,0.5)))
 
 
-# ## Le code de Simpson permet des calculs vectorisables
+# ## Le code de Simpson permet des calculs vectorisables directement
 
 # Famille de functions
 @jit
@@ -187,7 +180,7 @@ plt.plot(z,test(10.,z))
 plt.plot(z,test(20.,z))
 plt.grid()
 
-# ## Vmap emboités
+# # Vmap emboités
 # On derive `test` par rapport à `n` et on veut calculer ce gradiant pour ($n_i$) et $(z_j)$ collection de $i,j$
 
 z = jnp.linspace(0.1,1.0,100)
@@ -205,7 +198,9 @@ plt.title(r"$\frac{\partial}{\partial n} (\int_{z}^{z+1/2} f_n(x) dx)$")
 plt.xlabel(r"$z$")
 plt.grid();
 
-# ## Gradient de l'integration home made
+# ## Vérification que le Gradient de l'integration = la fonction
+#
+# $$\Large \frac{d}{dx} \int_a^x f(z) dz = f(x)$$
 
 f5 = lambda x: jnp.sqrt(x) * jnp.exp(-x)
 
@@ -222,33 +217,35 @@ plt.plot(x,vmap(grad(intf5))(x), ls="--", lw=3, label="$\partial_x \int_0^x f(z)
 plt.legend();
 
 
-# # Une methode plus efficace d'integration
+# # Une methode plus efficace d'integration: Quadrature de Clenshaw Curtis
+# Dans le fichier `CCquadInteg.py` on voit plusieurs petites choses
+# - quand un DeviceArray est crée il est `immutable` => opérations spéciales pour changer ses valeurs
+# - FFT incluse dans `jax.numpy`
 
-from CCquadInteg import *
+tmp = jnp.ones(5)
 
-# +
-quad=ClenshawCurtisQuad(150)  # 300 pts
-# function familly
-@jit
-def jax_funcN(x):
-    return jnp.stack([x**(i/10) * jnp.exp(-x) for i in range(50)],axis=1)
+tmp
 
-# set of integration intervals [a,a+1/2] a:0,0.1,0.2...
-ja = jnp.arange(0,10,0.5)
-jb = ja+0.5
-
+# + tags=[] jupyter={"outputs_hidden": true}
+tmp[0]=2
 # -
 
-#warm
-# %time tmp=jax_simps(jax_funcN,ja,jb,N=2**15).block_until_ready()
+tmp = tmp.at[0].set(2.)
+tmp = tmp.at[3].add(2.5)
 
-# +
+tmp
+
+# ## un peu de benchmarking: 1) warm-up pour la compilation, 2) `block_until_ready()`
+
+#warm
+# %time tmp=jax_simps(jax_funcN,jnp.array([0]),jnp.array([1]),N=4).block_until_ready()
 
 # %timeit  res_sim = jax_simps(jax_funcN,ja,jb,N=2**15).block_until_ready()
-# -
+
+quad = ClenshawCurtisQuad(150)
 
 #warm
-# %time tmp=quadIntegral(jax_funcN,ja,jb,quad).block_until_ready()
+# %time tmp=quadIntegral(jax_funcN,jnp.array([0]),jnp.array([1]),quad).block_until_ready()
 
 # %timeit  res_cc=quadIntegral(jax_funcN,ja,jb,quad).block_until_ready()
 
@@ -258,15 +255,26 @@ res_cc=quadIntegral(jax_funcN,ja,jb,quad)
 np.allclose(res_cc,res_sim,rtol=0.,atol=1e-6)  # atol=1e-7 => False
 
 
-def incremental_int(fn,y0,t, order=3):
+# ## Usage de  `jax.lax.scan`  https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.scan.html
+# ```python
+# def scan(f, init, xs):
+#   carry = init
+#   ys = []
+#   for x in xs:
+#     carry, y = f(carry, x)
+#     ys.append(y)
+#   return carry, np.stack(ys)
+# ```
+
+# ici t0: scalar et t:vecteur
+def incremental_int(fn,t0,t, order=3):
     quad = ClenshawCurtisQuad(order)
     def integ(carry,t):
         y, t_prev = carry
         y = y + quadIntegral(fn,t_prev,t,quad)
         return (y,t),y
-    (yf, _), y = jax.lax.scan(integ, (y0, jnp.array(t[0])), t)
+    (yf, _), y = jax.lax.scan(integ, (t0, jnp.array(t[0])), t)
     return y
-
 
 
 quad=ClenshawCurtisQuad(150) 
@@ -298,6 +306,8 @@ ax[1].grid()
 
 
 # # Un peu de Cosmo: qq etudes autour des distances...
+#
+# On va créer une classe PyTree 
 
 # +
 from dataclasses import dataclass
@@ -478,9 +488,6 @@ def radial_comoving_distance(cosmo, a, log10_amin=-3, steps=256):
         # Compute tabulated array
         atab = jnp.logspace(log10_amin, 0.0, steps)
 
-        def dchioverdlna_ode(y,x):
-            xa = jnp.exp(x)
-            return dchioverda(cosmo, xa) * xa
 
         def dchioverdlna(x):
             xa = jnp.exp(x)
@@ -609,6 +616,8 @@ plt.yscale("log")
 plt.legend()
 plt.grid()
 
+# ## gradient / vectorisation sur $\Omega_c$
+
 omc=jnp.linspace(0.001,0.5,5)
 #cosmo_jax = Cosmology(
 #    Omega_c=0.2545,
@@ -654,7 +663,12 @@ plt.yscale("log")
 plt.ylabel(r"$d_L$, $d_A$, $f_k=\sqrt{d_L d_A}$ Gly)")
 plt.grid();
 
+# # Etude spécifique sur $d_L$
+# ##  Gradient de $d_L$ selon tous les paramètres
+
 grad_lum = vmap(grad(luminosity_distance), in_axes=(None,0))(cosmo_jax,z2a(z))
+
+# ## Exemple $\partial d_L /\partial \Omega_k$: vérifier ce calcul !
 
 func = lambda a: -0.5*const.rh * (-1.+1./a**2) / (a**2 * Esqr(cosmo_jax, a)**1.5)
 dLdOmega_k = quadIntegral(func,z2a(z),1.0,ClenshawCurtisQuad(100))*(1+z)
@@ -679,5 +693,18 @@ plt.yscale("symlog")
 plt.xscale("log")
 plt.legend()
 plt.grid();
+
+# # Exercices: 
+# - vérifier que $\partial d_L / \partial w_0$ est correct. 
+# - Changer de cosmologie
+# - répéter l'étude avec $d_A$ par exemple
+
+# # Takeaway messages:
+# - la différentiation d'algorithmes complexes est possible s'ils sont écrits en JAX
+# - des études complexes de dépendance vis-à-vis de paramètrs sont possibles assez simplement
+# - usage pratique des PyTree user
+# - `jax.scipy` implémente des fonctionalités de`Scipy`
+# - `jax.lax.scan`, `jax.lax.switch`
+# - le benchmarking demande de l'attention.
 
 
