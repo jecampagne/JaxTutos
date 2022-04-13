@@ -86,7 +86,4 @@ for r in requirements:
     assert JAXTutos_default_version[r[0]]==r[1], f"wrong version {r[0]}:{r[1]}"
 # -
 
-for r in requirements:
-    print(r)
-
 
