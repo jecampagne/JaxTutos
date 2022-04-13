@@ -115,9 +115,9 @@ Vous devriez vous retrouver avec ce paneau où apparait à gauche une liste de f
 
 ![image](https://user-images.githubusercontent.com/20539759/162964730-0ff447fe-54d4-4e1f-9a65-a6ff712d4a53.png)
 
-Ensuite, pour la première fois nous utiliserons le nb **JaxTutos/JAX-first-grad-vmap.ipynb**, en double cliquant dessus vous devriez le voir apparaitre dans la partie droite de l'application et voir
+Maintenant nous allons procédé à la vérification de l'installation en activant le notebook `ATestInstall.ipynb` en double-cliquant dessus dans la liste à gauche
 
-![image](https://user-images.githubusercontent.com/20539759/162966336-fd65e5b6-d4e9-4f41-8df9-288668c1709d.png)
+![image](https://user-images.githubusercontent.com/20539759/163125536-0cca0592-c118-4a96-b692-f1d28ae39ca0.png)
 
 Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit.py` qui doit vous donner cela 
 
@@ -142,7 +142,9 @@ Une fois fait en principe le système cherche à activer le kernel en exécutant
 
 En activant la première cellule avec les imports Python, si tout se passe bien vous ne devriez pas avoir de message d'erreur mais simplement un warning sur le fait que la librairie `libcudart.so.11.0` n'est pas là. Ce n'est pas grave car elle n'est activée que dans le cadre de l'usage des GPUs (NVidia).
 
-Bon... à ce stade on doit pouvoir conclure que l'on peut commencer par ... ce prendre un café ! Bravo.
+En poursuivant l'activation des deux cellules suivantes s'il n'y a pas d'erreur alors à ce stade on doit pouvoir conclure que l'on peut commencer par ... ce prendre un café ! Bravo.
+S'il y a un package missing ou une différence de version alors vous aurez une levée d'exception qu'il faudra mentionner.
+
 
 # Interactions avec le Kernel
 
