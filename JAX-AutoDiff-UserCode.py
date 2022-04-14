@@ -699,7 +699,7 @@ plt.grid();
 # - Changer de cosmologie
 # - répéter l'étude avec $d_A$ par exemple
 
-# # Takeaway messages:
+# # Takeaway message:
 # - la différentiation d'algorithmes complexes est possible s'ils sont écrits en JAX
 # - des études complexes de dépendance vis-à-vis de paramètrs sont possibles assez simplement
 # - usage pratique des PyTree user
