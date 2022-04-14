@@ -95,10 +95,12 @@ vf = jax.vmap(jax.vmap(f, in_axes=(None, 0)), in_axes=(0, None))
 vf(jnp.array([1,2]),jnp.array([0.,2.,3.]))
 
 
+# ## Pour implémenter le code pour la fractale de Julia on utilise
+#
 # ```python
 # jax.lax.while_loop(cond_fun, body_fun, init_val) 
 # ```
-# à equivalent
+# ## qui est equivalent à 
 #
 # ```python
 # def while_loop(cond_fun, body_fun, init_val):
@@ -108,8 +110,7 @@ vf(jnp.array([1,2]),jnp.array([0.,2.,3.]))
 #   return val
 # ```
 
-#clear_cache()
-def test(args_vars):
+def julia(args_vars):
     
     cx,cy, XMIN, XMAX, YMIN, YMAX, LARGEUR, HAUTEUR, MAX_ITERATION = args_vars
         
@@ -141,26 +142,30 @@ def test(args_vars):
         
         return pixel_val
         
-    mapped = jax.vmap(jax.vmap(func, in_axes=(None, 0)), in_axes=(0, None))
+    mapped = jit(vmap(vmap(func, in_axes=(None, 0)), in_axes=(0, None)))
     result = mapped(jnp.arange(0, LARGEUR), jnp.arange(0, HAUTEUR))
 
     return result
 
-# Warmup
-args = (cx,cy, XMIN, XMAX, YMIN, YMAX, 1, 1, 1)
-tmp = test(args)
-
 args = (cx,cy, XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
-tmp = test(args)
+tmp = julia(args)
 
+# + jupyter={"outputs_hidden": true} tags=[]
 plt.figure(figsize=(20,20))
 plt.imshow(tmp,cmap=mpl.cm.jet)
+# -
 
 args = (0.3,0.02, XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
-tmp = test(args)
+tmp = julia(args)
 
+# + jupyter={"outputs_hidden": true} tags=[]
 plt.figure(figsize=(20,20))
 plt.imshow(tmp,cmap=mpl.cm.jet)
+
+
+# -
+
+# ## Faites joujou avec les valeurs de $c_x, c_y$ 
 
 # + [markdown] tags=[]
 # Pour aller plus loin:
@@ -168,5 +173,73 @@ plt.imshow(tmp,cmap=mpl.cm.jet)
 #
 # https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html?highlight=control_flow#control-flow
 # -
+# # Exercice 1) :
+# Implémeter le système suivant qui est très proche des fractales de Julia
+# $$
+# (XMIN, XMAX, YMIN, YMAX) = (-2, +0.5, -1.25, +1.25) \\
+# MAX\_ITERATION = 150
+# $$
+# ![image.png](attachment:c144ae4f-371a-40af-a1a0-0c80ceb40b54.png)
+#
+# Cette fois-ci on teste si (c_x, c_y) appartient à l'ensemble ou pas avec le même test que pour Julia (cf. `cond_fun` est inchangée)
+#
+# hint: cette fois-ci `u=(0,0,0)`,  et `(c_x, c_y)` doit définit avant la boucle while...
+
+# + jupyter={"source_hidden": true} tags=[]
+def mandelbrot(args_vars):
+    
+    XMIN, XMAX, YMIN, YMAX, LARGEUR, HAUTEUR, MAX_ITERATION = args_vars
+        
+    def func(ix,iy):
+    
+        cx = (ix * (XMAX - XMIN) / LARGEUR + XMIN)
+        cy = (iy * (YMIN - YMAX) / HAUTEUR + YMAX)
+
+        def body(val):
+            n = val[0]
+            x = val[1]
+            y = val[2]
+            xn = x * x - y * y + cx
+            yn = 2 * x * y     + cy
+            n = n+1
+            return (n,xn,yn)
+
+        cond_fun = lambda p : ((p[1]**2 + p[2]**2 < 4.) & (p[0] < MAX_ITERATION))
+
+        u = (0,0,0)
+        u = jax.lax.while_loop(cond_fun,body,u)
+        n = u[0]
+        
+        pixel_val = jax.lax.cond(jnp.isclose(n,MAX_ITERATION), 
+                                 lambda _: 0., 
+                                 lambda p: 0.222*((3*p)/256) + 0.666*(p/256) + 0.111*((10*p)/256),
+                                operand=n)
+
+        
+        return pixel_val
+        
+    mapped = jit(vmap(vmap(func, in_axes=(None, 0)), in_axes=(0, None)))
+    result = mapped(jnp.arange(0, LARGEUR), jnp.arange(0, HAUTEUR))
+
+    return result
+# -
+
+XMIN, XMAX, YMIN, YMAX = -2, +0.5, -1.25, +1.25
+args = (XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
+tmp = mandelbrot(args)
+
+# + jupyter={"outputs_hidden": true} tags=[]
+plt.figure(figsize=(20,20))
+plt.imshow(tmp,cmap=mpl.cm.jet)
+# -
+
+# # Exercice 2)
+# A la fin du notebook `JAX-first-grad-vmap.ipynb`: Réécrire la fonction `minimize` (notée `minimize_bis`) en utilisant le pattern `cond_fun/body/jax.lax.while_loop`
+#
+
+# # On peut passer en GPU juste pour voir...
 
 
+# # Takeaway message:
+# - comment utiliser les fonctions `jax.lax.cond`, `jax.lax.while` ...
+# - sans changement le code fonctionne (en principe) sous GPU

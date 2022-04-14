@@ -318,6 +318,20 @@ show_example(my_params)
 
 # # EXTRA qd on aura pratiqué l'exemple de la fratale de Julia
 
+# Exercice: Réécrire la fonction `minimize` (notée `minimize_bis`) en utilisant le pattern `cond_fun/body/jax.lax.while_loop`
+
+def minimzer_bis(loss_fun, x_data, y_data, par_init, method, maxiter=5000, loss_diff=1e-9):
+    cond_fun = True #...
+    @jit
+    def body(val):
+        #...
+        return #...
+    val = [par_init, 0.,0.,jnp.inf] 
+    #...
+    return val
+
+
+# + tags=[] jupyter={"source_hidden": true}
 def minimzer_bis(loss_fun, x_data, y_data, par_init, method, maxiter=5000, loss_diff=1e-9):
 
     cond_fun = lambda val: (val[1] < maxiter) & (jnp.abs(val[2]-val[3]) > loss_diff)
@@ -335,6 +349,7 @@ def minimzer_bis(loss_fun, x_data, y_data, par_init, method, maxiter=5000, loss_
     val = jax.lax.while_loop(cond_fun,body,val)
 
     return val
+# -
 
 param, n_iter, loss,_ = minimzer_bis(loss_fun, x_data=xin, y_data=yin, par_init=jnp.array([0., 0.5]),
                     method=gradient_descent_step)
