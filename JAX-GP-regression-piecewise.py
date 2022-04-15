@@ -25,15 +25,21 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 mpl.rc('image', cmap='jet')
 mpl.rcParams['font.size'] = 18
-mpl.rcParams["font.family"] = "Times New Roman"
 import matplotlib.patches as mpatches
 import corner
 import arviz as az
 
+# Librairies "non JAX" de GP
 import GPy
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
 
 
 # -
+
+# # Thème: usage simple des Gaussian processes (codage maison avec Numpyro)
+#
+# On se sert du use-case du notebook `JAX-Optim-regression`.
 
 def plot_params_kde(samples,hdi_probs=[0.393, 0.865, 0.989], 
                     patName=None, fname=None, pcut=None,
@@ -79,22 +85,19 @@ def plot_params_kde(samples,hdi_probs=[0.393, 0.865, 0.989],
 
 
 def mean_fn(x, params):
-    """Parametrisation avant et apres RT (t=0) """
+    """Parametrisation avant et apres (t=0) """
     R0 = params["R0"]
     v  = params["v"]
     k  = params["k"]
     tau =  params["tau"]
-    return jnp.piecewise(
-        x, [x < 0, x >= 0],
-        [lambda x: R0 + v*x, 
-         lambda x: R0 + v*x - k*(1.-jnp.exp(-x/tau))
-        ])
+    return jnp.where(x < 0, R0 + v*x, R0 + v*x - k*(1.-jnp.exp(-x/tau)))
 
 
 rng_key = jax.random.PRNGKey(42)
 rng_key, rng_key0, rng_key1, rng_key2 = jax.random.split(rng_key, 4)
 
-tMes = jax.random.uniform(rng_key0,minval=-5.,maxval=5.0,shape=(20,))
+n_dataset = 20
+tMes = jax.random.uniform(rng_key0,minval=-5.,maxval=5.0,shape=(n_dataset,))
 tMes=jnp.append(tMes,0.0)
 tMes=jnp.sort(tMes)
 
@@ -103,14 +106,27 @@ sigma_obs=1.0
 
 RMes = mean_fn(tMes,par_true) + sigma_obs * jax.random.normal(rng_key1,shape=tMes.shape)
 
-
-
 plt.errorbar(tMes,RMes,yerr=sigma_obs,fmt='o', linewidth=2, capsize=0, c='k', label="data")
 plt.xlabel("t")
 plt.ylabel("R")
 plt.legend()
 plt.grid();
 
+
+# # On va se servir d'une implémentation JAX/Numpyro d'un GP
+#
+# ![image.png](attachment:58042b6f-a12e-47c7-87ea-2adc786b77fa.png)
+#
+# ![image.png](attachment:68a5429c-8cb8-4aa1-ba99-4c90034c6d97.png)
+#
+# ![image.png](attachment:eb2d2c67-9945-4297-b866-3aab14a1b14e.png)
+#
+# ![image.png](attachment:e006e4ec-f2fd-4fdb-8e32-2a560685e1f2.png)
+#
+# ## Ouvrons ensemble le fichier `gaussproc.py` et vous allez vous rendre compte que vous `comprenez le code` (incroyable! Bravo!)
+
+# # Les priors...
+# Connaissant le sigma sur les données, on utilise `numpyro.deterministic`
 
 # +
 def kernel_prior():
@@ -125,7 +141,11 @@ def noise_prior():
 gp = GaussProc(kernel=kernel_RBF, kernel_prior=kernel_prior, noise_prior=noise_prior)
 # -
 
-gp.fit(rng_key2,X_train=tMes[:,jnp.newaxis],y_train=RMes, num_warmup=1_000, num_samples=5_000, progress_bar=True)
+# # Le fit des hyperparamètres
+# ## Ici j'ai utilisé NUTS, quelle autre méthode aurai-je pu utiliser?
+
+gp.fit(rng_key2,X_train=tMes[:,jnp.newaxis],y_train=RMes, 
+       num_warmup=1_000, num_samples=5_000, progress_bar=True)
 
 gp.get_marginal_logprob(X_train=tMes[:,jnp.newaxis],y_train=RMes)
 
@@ -133,7 +153,7 @@ samples = gp.get_samples()
 
 samples.keys()
 
-az.ess(samples, relative=True)
+az.ess(samples, relative=True) # nb. "noise" étant `deterministe` il faut oublier le calcul
 
 plot_params_kde(samples,pcut=[0,99.9],var_names=['k_length','k_scale'], figsize=(8,8))
 
@@ -143,7 +163,8 @@ t_val = np.linspace(-5,5,200)
 
 Rtrue_val = mean_fn(t_val,par_true)
 
-means,  stds= gp.predict(rng_key_new, X_train=tMes[:,jnp.newaxis],y_train=RMes, X_new=t_val[:,jnp.newaxis])
+means,  stds= gp.predict(rng_key_new, X_train=tMes[:,jnp.newaxis],y_train=RMes, 
+                         X_new=t_val[:,jnp.newaxis])
 
 means.shape
 
@@ -171,10 +192,9 @@ plt.ylabel("R")
 plt.legend()
 plt.grid();
 # -
-#
+# ## Commentez la figure en comparant par exemple avec celle de `Jax-Optim-regression`?
 
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
+# # Voyons ce que donne Sklean
 
 
 kernel = ConstantKernel(constant_value=100., constant_value_bounds=(10., 1000.)) * RBF(length_scale=1.0, length_scale_bounds=(0.1, 10.0))\
@@ -206,7 +226,9 @@ plt.legend()
 plt.grid();
 # -
 
-# # D'où vient la différence de largeur de la bande à 1-$\sigma$ ?
+# # D'où vient la différence de largeur de la bande à 1-$\sigma$ en comparant avec le résultat obtenu avec la classe `gaussproc.py` ou les versions `Jax-Optim` `Jax-NUTS`?
+#
+# # Voyons ce que donne la librairie `GPy`
 
 kernel = GPy.kern.RBF(input_dim=1, variance=100., lengthscale=1.0)
 
@@ -270,25 +292,26 @@ axs[1].set_title("Predict w/o noise");
 
 # -
 
+# ##1 Donc la différence des bandes à 1-sigma (et 2-sigma aussi) vient  de ce qu'on appelle une prédiction avec un modèle de bruit des données. La version `predict` de `Sklearn` (et `GPy`) considère qu'en un nouveau point $t_{new}$ on doit donner à l'utilisateur l'idée de ce qu'il aurait eu s'il avait une mesure en ce point; tandis que `predict_noiseless` de `GPy` et `predict` de `gaussproc.py` est conforme la l'algorithme de *C. E. Rasmussen & C. K. I. Williams* qui présente la prédiction en $t_{new}$ du modèle à la manière que fait un filtre de Kalman. Le problème devient aigü quand dans Sklearn on ajoute un WhiteKernel.
+#
+# ![image.png](attachment:b4f1fa2e-ca56-4879-b2e2-6af481670481.png)
+#
+# Vous pouvez lire cette issue que j'ai ouverte [ici](https://github.com/scikit-learn/scikit-learn/issues/22945) sur le Github de Sklearn.
+
 # # Q: si on change le range de [-5,5] à [-20,20] que se passe-t'il ? Pourquoi ?
 
 # # Gaussian Process avec $m(x)\neq 0$
 
 # +
-def mean_fn(x, params):
-    """Power-law behavior before and after the transition"""
-    return jnp.piecewise(
-        x, [x < 0, x >= 0],
-        [lambda x: params["R0"]+params["v"]*x, 
-         lambda x: params["R0"]+params["v"]*x - params["k"]*(1.-jnp.exp(-x/params["tau"]))
-        ])
-
-def mean_fn_prior():
-    # Sample model parameters
-    R0 = numpyro.sample("R0", numpyro.distributions.HalfCauchy(2.))
-    v = numpyro.sample("v", numpyro.distributions.HalfCauchy(2.))
-    k = numpyro.sample("k", numpyro.distributions.HalfCauchy(2.))
-    tau = numpyro.sample("tau", numpyro.distributions.HalfCauchy(2.))
+def mean_fn_prior(
+    R0_min=10.,v_min = 0.5,k_min = 1., tau_min=0.1,
+    R0_max=50.,v_max = 3.5,k_max = 20., tau_max=5.0):
+    
+    R0 = numpyro.sample("R0", dist.Uniform(R0_min,R0_max))
+    v  = numpyro.sample("v", dist.Uniform(v_min,v_max))
+    k  = numpyro.sample("k", dist.Uniform(k_min,k_max))
+    tau= numpyro.sample("tau", dist.Uniform(tau_min,tau_max))
+    
     # Return sampled parameters as a dictionary
     return { "R0": R0, "v":v, "k":k, "tau":tau}
 
@@ -315,7 +338,13 @@ gp = GaussProc(kernel=kernel_RBF,
 rng_key = jax.random.PRNGKey(42)
 rng_key, rng_key0, rng_key1, rng_key2 = jax.random.split(rng_key, 4)
 
-gp.fit(rng_key2,X_train=tMes[:,jnp.newaxis],y_train=RMes, num_warmup=1_000, num_samples=5_000, progress_bar=True)
+# # Dans un premier temps mettre `k_max=5` par exemple, et voir ce qu'il se passe, puis augmenter cette valeur (`k_max = 20` devrait aller). Regarder si les autres variables sont ok.
+
+gp.fit(rng_key2,X_train=tMes[:,jnp.newaxis],y_train=RMes, 
+       num_chains=1,
+       chain_method='vectorized',
+       num_warmup=1_000, num_samples=5_000,
+       progress_bar=True)
 
 samples = gp.get_samples()
 
@@ -323,7 +352,8 @@ az.ess(samples,relative=True)
 
 plot_params_kde(samples,pcut=[5,95],var_names=['R0','v','k','tau','k_length','k_scale'],figsize=(10,10))
 
-means,  stds= gp.predict(rng_key_new, X_train=tMes[:,jnp.newaxis],y_train=RMes, X_new=t_val[:,jnp.newaxis])
+means,  stds= gp.predict(rng_key_new, X_train=tMes[:,jnp.newaxis],
+                         y_train=RMes, X_new=t_val[:,jnp.newaxis])
 
 Rmean_val = jnp.mean(means,axis=0)
 std = jnp.mean(stds,axis=0)
@@ -344,5 +374,18 @@ plt.ylabel("R")
 plt.legend()
 plt.grid();
 # -
+# ## Commentez la figure. 
+
+
+# # Exercices:
+# - Posez vous la question de savoir comment obtenir l'hiistogramme  sur `tmin` (voir la fin de `JAX-Optim-regression`)? 
+# - Dans le code de GaussProc.fit, j'ai utilisé un méthode MCMC NUTS pour ajuster les hyperparamètres du GP. Essayer de coder une méthode basée sur `jaxopt`(nb `JAX-Optim-regression`).
+#
+# 1-2-3 à vous de coder...
+
+# # Takeaway message
+# - Dans ce nb, nous n'avons pas appris de nouvelles fonctionalités de JAX car `vous en savez déjà beaucoup pour vous lancer`. Bravo!
+# - Concernant les GP, on peut tout à fait se faire la main en codant soit même une petite librairie qui a des fonctionalités minimales. 
+# - Ce faisant on découvre que `la notion de bruit des données  en lien avec la notion de prédiction` est plus délicate qu'il n'y parait et il faut faire très attention à ce que délivre finalement les librairies et on ne peut totalemen les utilsier coemme des `boites-noires`.
 
 
