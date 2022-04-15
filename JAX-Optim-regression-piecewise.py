@@ -447,6 +447,6 @@ plt.show()
 # - usage de `jaxopt` pour faire de l'optimisation 
 # - les gradients et matrice Hessienne sont calculés exactement ce qui consolide la détermination des paramètres et des contours.
 # - Fisher forecast: facile!
-# - version paramétrique d'une
+# - version paramétrique d'une approximation d'observations
 
 
