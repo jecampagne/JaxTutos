@@ -17,37 +17,45 @@ Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques 
 ## Git clone du repository
 Dans votre espace de travail quotidien faire
 ```
-git clone git@github.com:jecampagne/JaxTutos.git
+git clone https://github.com/jecampagne/JaxTutos.git
 ```
 
 Dans le directory `JaxTutos` il y a des notebooks et 2 fichiers pour configurer le `kernel` Jupyter spécifique pour activer l'environement conda que vous allez installer de suite.
 
-Je vous conseille de créer un **lien symbolique** vers ce directory (`JaxTutos`) à partir de votre *home directory* afin de faciliter la procédure de login sur la plateforme des notebooks du CC. 
+Je vous conseille de créer un **lien symbolique** vers ce directory (`JaxTutos`) à partir de votre *home directory* afin de faciliter la procédure de login sur la plateforme des notebooks du CC.
 
 
 ## Environement Conda `JaxTutos`
 
-Elle se base sur Anaconda (v 4.12.0) mais peut peut-être fonctionner avec une autre version. 
+Elle se base sur Anaconda (v 4.11+) mais peut peut-être fonctionner avec une autre version.
+
+
+> Nb. la version d'Anaconda spécifique LSST ne convient pas, donc il faut se faire sa propre install
+
 ```
-Nb. la version d'Anaconda spécifique LSST ne convient pas, donc il faut se faire sa propre install
+wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Linux-x86_64.sh -O ~/miniconda.sh
+bash ~/miniconda.sh -p miniconda
 ```
 
-Voir sa version via 
+Voir sa version via
 > `conda --version`
 
+Si besoin, mettre à jour la variable `PATH` pour pointer vers `/chemin/miniconda/bin`.
 
 
 Selon l'ordre suivant vous allez procéder à l'installation de l'environement Conda `JaxTutos`
 ```
 conda create -n JaxTutos python=3.8
 conda activate JaxTutos
-pip install --upgrade "jax[cuda]>=0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+pip install --upgrade "jax[cuda]==0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 pip install numpyro==0.9.1
 pip install jaxopt==0.3.1
 pip install optax==0.0.1
 pip install corner==2.2.1
 pip install arviz==0.11.4
 pip install GPy==1.10.0
+pip install scikit-learn==1.0.2
+pip install matplotlib_inline
 ```
 
 Un petit test de la version de `jaxlib` ...
@@ -72,7 +80,7 @@ Copiez dans directory  `~/.local/share/jupyter/kernels/JaxTutos` les deux fichie
 jupyter-helper.sh
 kernel.json
 ```
-Il faut maintenant éditer ces 2 fichiers afin de tuner les chaines **"A REMPLACER"**. 
+Il faut maintenant éditer ces 2 fichiers afin de tuner les chaines **"A REMPLACER"**.
 Commençons par `jupyter-helper.sh` où il faut renseigner où se trouve le script `conda.sh`:
 ```bash
 #!/bin/bash
@@ -125,7 +133,7 @@ Maintenant nous allons procédé à la vérification de l'installation en activa
 
 ![image](https://user-images.githubusercontent.com/20539759/163125536-0cca0592-c118-4a96-b692-f1d28ae39ca0.png)
 
-Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit.py` qui doit vous donner cela 
+Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit.py` qui doit vous donner cela
 
 ![image](https://user-images.githubusercontent.com/20539759/162968185-dda54cac-db44-4a65-bc2a-9d1b4ca8f45d.png)
 
@@ -170,7 +178,3 @@ Les procédures de Start/reStart/Arrêt/Reconnection... se font via le panel sui
 - Anaconda : https://docs.anaconda.com/anaconda/install/index.html
 - environement anaconda: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
 - PIP : https://docs.python.org/fr/3.8/installing/index.html#basic-usage
-
-
-
-
