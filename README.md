@@ -8,6 +8,7 @@ Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques 
 4) `JAX-Optim-regression-piecewise.ipynb`: avec ce notebook on explore quelques fonctionalités de la librairie JaxOpt d'optimisation (equivalent de ScipyMinimize). On utilisera un exemple de dataset 1D qui nous sert dans les deux autres nbs.
 5) `JAX-NUTS-regression-piecewise.ipynb`: en reprenant le dataset 1D du (4) on utilise la librairie Numpyro MCMC NUTS pour sampler une distribution posterior et obtenir les coutours de parametres et des predictions
 6) `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (5) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
+7) `JAX-MC-Sampling.ipynb` (*in progress*): on apprend ici à faire différents types de MC sampling. Il se peut que je déplace ce nb avant `JAX-NUTS-regression-piecewise.ipynb` (à voir)...
 
 
 
