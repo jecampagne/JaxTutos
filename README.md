@@ -28,8 +28,14 @@ Je vous conseille de créer un **lien symbolique** vers ce directory (`JaxTutos`
 ## Environement Conda `JaxTutos`
 
 Elle se base sur Anaconda (v 4.12.0) mais peut peut-être fonctionner avec une autre version. 
+```
+Nb. la version d'Anaconda spécifique LSST ne convient pas, donc il faut se faire sa propre install
+```
+
 Voir sa version via 
 > `conda --version`
+
+
 
 Selon l'ordre suivant vous allez procéder à l'installation de l'environement Conda `JaxTutos`
 ```
