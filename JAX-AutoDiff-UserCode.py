@@ -37,6 +37,9 @@ import matplotlib.pyplot as plt
 mpl.rc('image', cmap='jet')
 mpl.rcParams['font.size'] = 18
 
+#integration homemade
+from CCquadInteg import *
+
 
 # + [markdown] tags=[]
 # # Le thème: Auto-différentiation appliquée sur des algorithmes
