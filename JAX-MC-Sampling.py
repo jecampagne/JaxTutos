@@ -1242,4 +1242,9 @@ az.ess(np.array(samples_1.squeeze()), relative=True)
 # - En adaptant au coup par coup $q(x)$, on a aboutit à la méthode de `Metropolis-Hastings`. Mais celle-ci bien que souvent employée a une efficacité d'échantillonnage de $0.1\%$ même sur des cas pas trop pathologiques en 1D. Cela est du au caractère de `marche aléatoire` de la méthode.
 # - Une dernière méthode prometteuse vue dans ce nb est celle à base d'équations différentuielles de Hamilton (Hamiltionian Monte carlo, aka HMC). Certes on augmente l'efficacité d'échantillonnage d'un facteur 10, mais il faut bien choisir les paramètres de l'algorithme `leapfrog` (`nombre de steps, et longueur de chaque step`).
 
+# # Extra 
+# Après avoir vu le notebook `JAX-NUTS-regression-piecewise`: au lieu de HMC, on peu utiliser NUTS. Reprendre l'exemple du mélange de 2 gaussiennes et voir ce que cela donne en termes d'efficacité d'échantillonnage.
+
+
+
 
