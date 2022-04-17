@@ -64,7 +64,7 @@ def phi(x):
 # # la librairie Scipy fournit une intégration numérique
 
 Z = sc_integrate.quad(lambda x: prob(x),-3, 3)
-Integ_true,err= integrate.quad(lambda x: prob(x,norm=Z[0])*phi(x),-3, 3)
+Integ_true,err= sc_integrate.quad(lambda x: prob(x,norm=Z[0])*phi(x),-3, 3)
 print("<phi>_true =",Integ_true,"+/-",err)
 
 err/Integ_true
@@ -115,7 +115,7 @@ for n in Ns:
     print(n,(I0-Integ_true)/Integ_true)
 
 key = jax.random.PRNGKey(20)
-Ns = np.int_(10**np.arange(3,7,0.1))
+Ns = np.int32(np.logspace(3,7,50))
 info =[]
 for n in Ns: 
     key, subkey = jax.random.split(key)
@@ -144,6 +144,8 @@ plt.grid()
 plt.legend()
 plt.show()
 
+# ## Notez bien la dépendance $1/\sqrt{N}$
+
 print(f"Ns       err. relat.")
 for n in range(3,7):
     cut = (10**n<=Ns) & (Ns<10**(n+1))
@@ -155,17 +157,28 @@ Z = quadIntegral(lambda x: prob(x), -3,3, quad)
 Integ_cc=quadIntegral(lambda x: prob(x,norm=Z)*phi(x),-3,3, quad)
 print("Diff relat. avec scipy: ",(Integ_cc-Integ_true)/Integ_true)
 
-
-
 # # Importance Sampling
+#
+# L'idée est de générer des échantillons aléatroires selon une distribution $q(x)$ laquelle est une approximation de $p(x)$ (on note avec un $\tilde{}$ la distribution non-normalisée)
+#
+# ![image.png](attachment:97ca5775-d84d-4166-9db6-a4fe1cba48d5.png)
+# ![image.png](attachment:35e273b8-4446-460d-9c3c-3bdb4f1f9555.png)
+# ![image.png](attachment:8ba3d263-88ea-4b9f-b04b-4d67c3bc2778.png)
+#
+# Le choix de $q(x)$ va conditionner la performance de cet algorithme.
 
+# ## Ci-dessous 2 types d'approxiamtions à base de gaussiennes
+
+scale_0 = 3
 def qapp0(x):
-    return 60*jax.scipy.stats.norm.pdf(x,scale=1.5)
+    return 90*jax.scipy.stats.norm.pdf(x,scale=scale_0)
 
 
+scale_1 = 0.5
+mean_1  = 1.5
 def qapp(x):
-    return 20*(jax.scipy.stats.norm.pdf(x,scale=0.5)+\
-            jax.scipy.stats.norm.pdf(x-1.5,scale=0.5))
+    return 20*(jax.scipy.stats.norm.pdf(x,scale=scale_1)+\
+            jax.scipy.stats.norm.pdf(x-mean_1,scale=scale_1))
 
 
 x = np.arange(-3,3,0.01)
@@ -176,23 +189,27 @@ plt.grid()
 plt.legend()
 plt.xlabel("x");
 
-# génération simple d'une distribution somme de 2 gaussiennes
+# Si la génération de nombre aléatoire avec 1 gaussienne directement implémentée dans les librairy, voici une génération simple d'une distribution somme de 2 gaussiennes.
 
-xs1 =  jax.random.normal(subkey, (10000,))*0.5
-xs2 = jax.random.normal(subkey, (10000,))*0.5+1.5
-xs=jnp.concatenate([xs1,xs2])
-Zq,_ = integrate.quad(lambda x: qapp(x),-5, 5) 
+key, subkey1,subkey2  = jax.random.split(jax.random.PRNGKey(42),3)
+xs1 = jax.random.normal(subkey1, (10000,))*scale_1
+xs2 = jax.random.normal(subkey2, (10000,))*scale_1+mean_1
+xs  = jnp.concatenate([xs1,xs2])
+
+quad = ClenshawCurtisQuad(100)
+Zq = quadIntegral(lambda x: qapp(x),-5, 5, quad) 
+
 xi = np.arange(-5,5,0.1)
-plt.hist(xs,bins=50,density=True);
 plt.plot(xi,qapp(xi)/Zq)
+plt.hist(np.array(xs),bins=50,density=True); 
+# hist n'aime pas les devic array de Jax/Lax mais la conversion en np.ndarray est immediate
 
 # +
-key = jax.random.PRNGKey(42)
-@jax.partial(jit, static_argnums=1)
+@partial(jit, static_argnums=1)
 def importance_sampling(key,N):
     key, subkey = jax.random.split(key)
-    xs1= jax.random.normal(subkey, (N//2,))*0.5
-    xs2= jax.random.normal(subkey, (N//2,))*0.5+1.5
+    xs1= jax.random.normal(subkey, (N//2,))*scale_1
+    xs2= jax.random.normal(subkey, (N//2,))*scale_1 + mean_1
     x_Qrnd=jnp.concatenate([xs1,xs2])
     w = prob(x_Qrnd)/qapp(x_Qrnd)
     norm = jnp.sum(w)
@@ -200,37 +217,32 @@ def importance_sampling(key,N):
     integ = jnp.dot(w/norm,phi_samples)
     return integ,w, key
 
-@jax.partial(jit, static_argnums=1)
+@partial(jit, static_argnums=1)
 def importance_sampling_0(key,N):
     key, subkey = jax.random.split(key)
-    x_Qrnd=jax.random.normal(subkey, (N,))*1.5
+    x_Qrnd=jax.random.normal(subkey, (N,))*scale_0
     w = prob(x_Qrnd)/qapp0(x_Qrnd)
     norm = jnp.sum(w)
     phi_samples=phi(x_Qrnd)
     integ = jnp.dot(w/norm,phi_samples)
     return integ,w, key
 
-# -
-
-
 
 # +
 Integ_is,Ws0,_= importance_sampling_0(key,100000)
-print(f"$I_{{is}}^0$ = {Integ_is:.6e};\
-  \trelat. err ={np.abs(Integ_is-Integ_true)/Integ_true:.6e}")
+print(f"$I_{{is}}^0$ = {Integ_is:.6e};  \trelat. err ={np.abs(Integ_is-Integ_true)/Integ_true:.6e}")
 
 Integ_is,Ws,_= importance_sampling(key,100000)
-print(f"$I_{{is}}$ = {Integ_is:.6e};\
-  \trelat. err ={np.abs(Integ_is-Integ_true)/Integ_true:.6e}")
+print(f"$I_{{is}}$ = {Integ_is:.6e};  \trelat. err ={np.abs(Integ_is-Integ_true)/Integ_true:.6e}")
 # -
 
-_,bins,_=plt.hist(Ws0,bins=50,alpha=0.5,density=True,label='$W(q_0)$');
-plt.hist(Ws,bins=bins,alpha=0.5,density=True,label='$W(q)$');
+_,bins,_=plt.hist(np.array(Ws0),bins=50,alpha=0.5,density=True,label='$W(q_0)$');
+plt.hist(np.array(Ws),bins=bins,alpha=0.5,density=True,label='$W(q)$');
 plt.yscale('log')
 plt.legend();
 
 key = jax.random.PRNGKey(20)
-Ns = np.int_(10**np.arange(3,7,0.1))
+Ns = np.int32(np.logspace(3,7,20))
 infoI1_0 =[]
 infoI1 =[]
 for n in Ns: 
@@ -273,24 +285,59 @@ for n in range(3,7):
   {(np.mean(np.array(infoI1)[cut])-Integ_true)/Integ_true:15.6e}"
          )
 
-# ## En dimension N
 
+# ## **moralité**: plus on a une approximation $q(x)$ "bonne" de $p(x)$ meilleure est le calcul de l'intégrale, c'est-à-dire le sampling de $p(x)$. Cela se traduit en fait sur la distribution des poids qui au mieux doit se concentrer autour de $1$. Mais cela devient très improbable en grande dimension. Voir l'exo suivant.
 
+# # En dimension N>1
+# ## Plus $N$ augmente plus les méthodes par intégration numérique classiques (ex. quadrature) ne peuvent être mises en pratique.
+#
+# ## Soit la loi uniforme dans une boule de rayon $R$ en dimension $d$
+#
+# ![image.png](attachment:30e2fb5e-f74e-46e5-94d5-6de734ebb347.png)
+#
+# ## on veut calculer par *importance samping* l'intégrale suivante 
+# $$
+# \Large
+# I(d) = \int r^2 p(x) dx^d = R^2 \frac{d}{d+1}
+# $$
+#
+#
 
+# ## Exo: coder la fonction $p(x)$
+# ```python
+# @jit
+# def prob_nD(x,R=1):
+#     res = ...
+#     return res
+# ```
+# *hint*: rappelez vous que l'on a pas besoin de connaître la normalisation.
+
+# + tags=[] jupyter={"source_hidden": true}
 @jit
 def prob_nD(x,R=1):
     r  = jnp.linalg.norm(x,axis=1)
     return jnp.where(r<R,1,0)
 
 
-@partial(jit, static_argnums=2)
+# -
+
+# ## On va se servir comme approximation de la loi normale centrée en dimension $d$
+# $$
+# \Large
+# q(x) = \mathcal{N}_d(0,\sigma^2) = \frac{e^{-x^2/(2\sigma^2)}}{(2\pi\sigma^2)^{d/2}}
+# $$
+
+@jit
 def qapp_nD(x,s=1):
     dim = x.shape[1]
-    return jax.scipy.stats.multivariate_normal.pdf(x,np.zeros(dim),
-                                            s**2*np.identity(dim))
+    return jax.scipy.stats.multivariate_normal.pdf(x,np.zeros(dim), s**2*np.identity(dim))
 
 
 # Où sont localisés les points tirées selon une loi gaussienne en dimension $d$?
+# $$
+# \Large
+# \langle r \rangle =  \langle \sqrt{\|x\|^2} \rangle = \sigma \sqrt{d}; \qquad \sigma_r = \frac{\sigma}{\sqrt{2}}
+# $$
 
 key = jax.random.PRNGKey(0)
 N=10_000
@@ -308,10 +355,6 @@ for dim in dims:
     info1.append(jnp.mean(r))
     info2.append(jnp.std(r))
 
-plt.hist(r,bins=50,density=True);
-plt.title(f"distrib. r en dim:{dim}")
-plt.xlabel("r")
-
 fig, ax = plt.subplots()
 axes = [ax, ax.twinx()]
 axes[0].scatter(dims,info1,c='b',label="<r>");
@@ -323,10 +366,12 @@ axes[1].scatter(dims,info2,c='r',label="$\sigma_r$");
 axes[1].axhline(y=1/np.sqrt(2), color='r', linestyle='--')
 axes[1].set_ylim([0.6,0.8])
 axes[1].set_ylabel("$\sigma_r$")
-plt.title("$<r>$ et $\sigma_r$, loi gaussienne dim d");
+plt.title(r"$\langle r \rangle$ et $\sigma_r$, loi $\mathcal{N}_d(0,1)$");
 axes[0].legend(loc='upper left');
 axes[1].legend(loc="lower right");
 
+
+# ## Donc en dimension $d$ les points générés par une gaussienne centrée, contrairement à l'intuition, se concentre non pas autour de l'origine mais sur une coquille de rayon $\langle r\rangle = \sigma d^{1/2}$ dont l'épaisseur est une constante $\sigma_r$. Donc, pour que les poids $p(x_i)/q(x_i)$ ne soient pas nuls ou infinis il faut que $\langle r\rangle\leq R$ c'est-à-dire $\sigma\leq R/\sqrt{d}$ 
 
 @jit
 def phi_nD(x):
@@ -354,20 +399,28 @@ def integ_true_nD(dim,R=1):
     return R**2*dim/(dim+2)
 
 
-key = jax.random.PRNGKey(0)
-Ns = 10_000
+key = jax.random.PRNGKey(50)
+Ns = 100_000
 dim = 400
 R = 1
-sigma = R/np.sqrt(dim)
+facteur=1.0
+sigma =  facteur  * R/np.sqrt(dim)
 _,integ_is,w = importance_sampling_nD(key,Ns,dim=dim,R=R,s=sigma)
-print("Integ=", integ_is,integ_true_nD(dim))
+I_true =  integ_true_nD(dim,R)
+print(f"Integ= {integ_is:.6}, True={I_true:.6}, err relat.={(integ_is-I_true)/I_true:.2e}" )
 w_max = jnp.max(w)
 w_med = jnp.median(w)
 print(f"w max: {w_max:.6e}, med: {w_med:.6e}, max/med: {w_max/w_med:.6e}")
 
-plt.hist(w,bins=50,density=True);
-plt.yscale('log')
+# ## Exo: changer le facteur pour  {0.8,1.17561336}
 
+plt.hist(np.array(w),bins=50,density=True);
+plt.yscale('log')
+plt.title(f"distribution des poids en dim={dim}")
+plt.xlabel("w");
+
+
+# ## la distribution des poids est tres piquée à petit $w$ et le rapport $w_{max}/w_{med}$ explose
 
 def test(dim):
     key = jax.random.PRNGKey(0)
@@ -378,7 +431,6 @@ def test(dim):
     w_max = jnp.max(w)
     w_med = jnp.median(w)
     return integ,w_max/w_med
-
 
 
 dims = np.array([1,2,5,10,20,30,40,50,100,200,300,400])
@@ -397,7 +449,18 @@ plt.grid()
 plt.legend()
 plt.show()
 
+# # le calcul de l'intégrale est déterminée par une distribution de poids qui n'a rien de centrée sur $1$ et devient très sensible aux poids dans la  queue de distribution.
+
 # # Metropolis-Hastings method
+# (C. Metropolis (1915-99) et Wilfred Hastings (1930-2016))
+#
+# ## La méthode date des années 1950-70. Dans l'Importance Sampling $q(x)$ est choisie une fois pour toute. **M-H va générer des échantillons (constituant une chaine de Markov) où $q(x)$ va être adaptée à chaque titage**.
+#
+# Pour générer un échantillon à l'étape $i$, noté $x_i$:
+# ![image.png](attachment:43c45aae-4676-498f-86c7-4ca5f0a8eb63.png)
+#
+# ![image.png](attachment:62e91e8e-125c-4724-9271-8a624a1f6f06.png)
+#
 
 # ## Simple cas en 1D, multi-chaines (Numpy)
 
