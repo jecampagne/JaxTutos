@@ -42,9 +42,11 @@ import scipy.integrate as sc_integrate
 #integration homemade
 from CCquadInteg import *
 
+import arviz as az
+import seaborn as sns
+import pandas  as pd
 
-#import seaborn as sns
-#import pandas  as pd
+
 # -
 
 # # Thème: Monte Carlo sampling.
@@ -152,10 +154,14 @@ for n in range(3,7):
     print(f"{np.mean(Ns[cut]):7.0f}\
  {(np.mean(np.array(info)[cut])-Integ_true)/Integ_true:15.6e}")
 
+# ## notez que l'on peut également utliser la quadrature de Clenshaw-Curtis
+
 quad = ClenshawCurtisQuad(100) # 200pts
 Z = quadIntegral(lambda x: prob(x), -3,3, quad)
 Integ_cc=quadIntegral(lambda x: prob(x,norm=Z)*phi(x),-3,3, quad)
 print("Diff relat. avec scipy: ",(Integ_cc-Integ_true)/Integ_true)
+
+# ### Le problème qui se pose à nous c'est qu'en grande dimension il n'existe pas de quadrature générale sauf le produit cartésien de quadrature 1D à $n$-points,  dont le nbre de points croit comme $n^d$. ex. $n=10$ et $d=20$, nombre colossal (ie. $4 10^{19}$ positions diff. du Rubik's cube, $10^24$ atomes dans l'Univers "visible".)  On va donc se tourner vers des techniques Monte Carlo.
 
 # # Importance Sampling
 #
@@ -289,7 +295,6 @@ for n in range(3,7):
 # ## **moralité**: plus on a une approximation $q(x)$ "bonne" de $p(x)$ meilleure est le calcul de l'intégrale, c'est-à-dire le sampling de $p(x)$. Cela se traduit en fait sur la distribution des poids qui au mieux doit se concentrer autour de $1$. Mais cela devient très improbable en grande dimension. Voir l'exo suivant.
 
 # # En dimension N>1
-# ## Plus $N$ augmente plus les méthodes par intégration numérique classiques (ex. quadrature) ne peuvent être mises en pratique.
 #
 # ## Soit la loi uniforme dans une boule de rayon $R$ en dimension $d$
 #
@@ -310,7 +315,7 @@ for n in range(3,7):
 #     res = ...
 #     return res
 # ```
-# *hint*: rappelez vous que l'on a pas besoin de connaître la normalisation.
+# *hint*: rappelez vous que l'on n'a pas besoin de connaître la normalisation, ca simplifie beaucoup :)
 
 # + tags=[] jupyter={"source_hidden": true}
 @jit
@@ -449,6 +454,7 @@ plt.grid()
 plt.legend()
 plt.show()
 
+
 # # le calcul de l'intégrale est déterminée par une distribution de poids qui n'a rien de centrée sur $1$ et devient très sensible aux poids dans la  queue de distribution.
 
 # # Metropolis-Hastings method
@@ -463,8 +469,6 @@ plt.show()
 #
 
 # ## Simple cas en 1D, multi-chaines (Numpy)
-
-
 
 class MixtureModel(scs.rv_continuous):
     def __init__(self, submodels, weights, *args, **kwargs):
@@ -497,12 +501,16 @@ mixture_gaussian_model = MixtureModel([scs.norm(loc=0, scale=0.5),
                                        scs.norm(loc=1.5, scale=0.2)],
                                       [8,2])
 
+x_axis = np.arange(-3, 3, 0.01)
+plt.plot(x_axis, mixture_gaussian_model.pdf(x_axis),'r-', lw=5, alpha=0.6, label='true pdf')
+plt.legend();
+
 
 def phi(x):
     return x**2
 
 
-# ## 
+# ## L'idée est d'utiliser la méthode M-H pour générer des échantillons selon $p(x)$ (mixture of gaussian) est de calculer la moyenne de $\phi(x)$.
 
 def MHSampling_v2p(proba,Ns=100_000,Nchain=10,scale=0.1, forget=25_000):
     # Ns nbre de samples per chain
@@ -512,7 +520,7 @@ def MHSampling_v2p(proba,Ns=100_000,Nchain=10,scale=0.1, forget=25_000):
     current = scs.uniform.rvs(loc=-3,scale=6, size=(Nchain,))
     for i in range(Ns):
         samples.append(current.copy())
-        #proposal in [current-scale,current+scale]
+        #proposal distrib. uniforme in [current-scale,current+scale]
         proposal = scs.uniform.rvs(loc=current-scale,scale=2*scale, size=(Nchain,))
         # proposal distrib is symetric: q(x_c,x_p)=q(x_c-x_p)=q(x_p,x_c)
         r = proba(proposal)/proba(current)  
@@ -525,8 +533,10 @@ def MHSampling_v2p(proba,Ns=100_000,Nchain=10,scale=0.1, forget=25_000):
     return samples[:,forget:]
 
 
+# # Warning: La commande suivante est un peu longue... ~ 2'30 
+
 spls = MHSampling_v2p(lambda x: mixture_gaussian_model.pdf(x),
-                            Ns=100_000, Nchain=100, forget=25000, scale=0.1
+                            Ns=100_000, Nchain=100, forget=25_000, scale=0.1
                            )
 
 # +
@@ -551,18 +561,47 @@ Integ_M = np.mean(phi_spl)
 
 print(f"Integ ({spl_all.shape[0]:.0e} spl): {Integ_M:.6e}")
 
-Integ_true,_=integrate.quad(lambda x: phi(x)*mixture_gaussian_model.pdf(x),-3,3)
+Integ_true,err= sc_integrate.quad(lambda x: phi(x)*mixture_gaussian_model.pdf(x),-3, 3)
 
 Integ_true
 
-(Integ_M-Integ_true)/Integ_true
+print(f"Erreur relative : {(Integ_M-Integ_true)/Integ_true:.4}")
+
+# ## Pourquoi a-t-on un si mauvais résultat? alors que l'on a tiré $10^7$ échantillons et donc on s'attend à une approximation $O(1/\sqrt{10^7})=O(3\ 10^{-4})$
 
 fig = plt.figure(figsize=(10,5))
 plt.plot(spls[0])
 plt.plot(spls[1])
 
+plt.plot(spls[0][:10_000])
+plt.plot(spls[1][:10_000])
+plt.plot(spls[2][:10_000])
+plt.plot(spls[3][:10_000])
+plt.ylim([-2.2,2.2])
+plt.grid();
 
-# ## Version avec les logprob et implementee en Jax
+# ## Pour explorer un range $L$ avec un step de $\varepsilon=0.1$ il faut au un temps de l'ordre de $T=O((L/\varepsilon)^2)$. C'est la loi de marche àléatoire, qui est très lente... Or, augmenter $\varepsilon$ nous ferait rater le pic secondaire...
+
+# ## Exo: changer la valeur de scale=0.1
+
+# ## Ceci étant la question qu'il faut se poser c'est de savoir quel est le nombre effectif d'échantillons indépendants que l'on a collecté?
+
+import arviz as az
+
+print(f"iid sample size : 1 chaine {az.ess(spls[0]):.2e}, ttes les chaines {az.ess(spl_all):.2e}")
+
+
+# ## Ainsi avec toutes les chaines on a seulement une approximation $O(10^{-2})$ ce qu'en effet nous avons obtenu. L'efficacité de sampling (iid) est de l'ordre de $0.1\%$, et cela est typique des librairies qui utilisent la méthode de M-H. Cela oblige à générer des chaines très longues en parallèle pour pouvoir obtenir un lot suffisament important pour obtenir des approximations de paramètres satisfaisantes.  Nous allons voir qu'il y a des méthodes plus efficaces.
+
+# ## Version avec les logprob et implementee en Jax. Ici juste histoire de voir que JAX/JIT va plus vite mais ne change pas le problème de M-H.
+#
+# Vous pouvez ouvrir une fenêtre Terminal (File->New->Terminal) et taper
+#
+# > watch nvidia-smi
+#
+# vous verrez alors la charge sur le GPU. 
+#
+# Pour en sortir, `crtl C`.
 
 class MixtureModel_jax():
     def __init__(self, locs, scales, weights, *args, **kwargs):
@@ -661,6 +700,9 @@ def jax_metropolis_sampler(rng_key, n_samples, logpdf, initial_position):
     
     
     return all_positions
+# -
+
+# ## ici on a 10x plus de statistique en 15sec
 
 # +
 n_dim = 1
@@ -673,7 +715,7 @@ rng_key = jax.random.PRNGKey(42)
 rng_keys = jax.random.split(rng_key, n_chains)
 initial_position = jnp.zeros((n_dim, n_chains))
 
-run_mcmc = jax.vmap(jax_metropolis_sampler, 
+run_mcmc = vmap(jax_metropolis_sampler, 
                     in_axes=(0, None, None, 1),
                     out_axes=0)
 all_positions = run_mcmc(rng_keys, n_samples, 
@@ -682,7 +724,7 @@ all_positions = run_mcmc(rng_keys, n_samples,
 
 all_positions = all_positions.squeeze()
 
-all_positions=np.asarray(all_positions[:,25_000:])
+all_positions=np.asarray(all_positions[:,n_forget:])
 
 # +
 fig, axs = plt.subplots(1,2, figsize=(15,5))
@@ -700,9 +742,9 @@ fig.suptitle(f"Metropolis-Hastings (Jax): {all_positions.shape[0]} chains of {al
 plt.show()
 # -
 
-# ## Estimation de  parametres: 3 dim
+# ## Exo: à vous de calculer l'intégrale sur $\phi(x)$ et l'efficacité de sampling...
 
-
+# # Au lieu de calculer un intégrale passons à l'estimation de parametres en dimension 3.
 
 sample_size = 5_000
 sigma_e = 1.5             # true value of parameter error sigma
@@ -724,8 +766,8 @@ def lik(parameters, X, Y):
 
 # +
 
-lik_model = minimize(lik, np.array([1,1,1]), args=(xi,yi), method='L-BFGS-B')
-print(lik_model['x'])
+lik_model = sc_minimize(lik, np.array([1,1,1]), args=(xi,yi), method='L-BFGS-B')
+print("Parametres estimés par Scipy Minimize:", lik_model['x'])
 # -
 
 mini=lik_model['x']
@@ -857,7 +899,7 @@ g = sns.PairGrid(full_df_2[full_df_2["chain"].str.fullmatch('0|1|2|3|4|Min Scipy
                  corner=True, 
                  palette="hls")
 g.map_lower(plt.scatter)
-g.map_diag(sns.kdeplot,warn_singular=False)
+g.map_diag(sns.kdeplot)
 g.add_legend(loc='upper right', ncol=1)
 for lh in g._legend.legendHandles: 
     lh.set_alpha(1)
@@ -933,7 +975,59 @@ plt.show()
 df_res2.describe()
 
 
+# ## Nous verrons une autre façon d'exploiter les samples...
+
 # # Hamiltonian Monte Carlo
+#
+# HMC en 180sec: on a une probabilité cible notée $p_c(x)$ que l'on essaye d'échantillonner.
+# $$
+# \Large
+# p_c(x) = \frac{e^{-V(x)}}{Z} \Leftrightarrow -\log(p_c(x)) = V(x) + Cte
+# $$
+# où 
+# $$
+# \Large
+# V(x) = -\log(\pi(x)\mathcal{L}(x|\mathcal{D}))
+# $$
+# avec $\pi(x)$ le *prior* et $\mathcal{L}$ le likelihood. La technique HMC introduit une variable conjuguée à $x$, que l'on note opportunément $p$ et l'on forme la fonction (hamiltonien) 
+# $$
+# \Large
+# H(x,p) = V(x) + E_c(p)
+# $$
+# avec $E_c(p)$ une pseudo-énergie cinétique (terme quadratique avec matrice de masse).
+# $$
+# \Large
+# \dot{x} = \frac{\partial H}{\partial p} = \frac{\partial E_c}{\partial p} = p
+# \qquad 
+# \dot{p} = -\frac{\partial H}{\partial x} = -\frac{\partial V}{\partial x} = \frac{\partial \log p_c(x)}{\partial x} 
+# $$
+#
+# Algo:
+# - tirage aléatoire de $p_i\sim \mathcal{N}(0,1)$; puis l'on initialise $p_{new}=p_i$ et symétriquement $x_{new}=x_i$; 
+# - itération de $n_{steps}$ étapes d'intégration des équations du mouvement suivant la méthode dite de l'algorithme **leapfrog** en anglais ou **saute-mouton** en français (traduction non-littérale): 
+# $$
+# \Large
+# \begin{cases}
+# 	p_{new} &= p_{new} - \varepsilon \times \frac{1}{2} \frac{\partial V(x)}{\partial x}|_{x=x_{new}}  \\
+# 	x_{new} &= x_{new} + \varepsilon \times p_{new} \\
+# 	p_{new} &= p_{new} - \varepsilon \times \frac{1}{2} \frac{\partial V(x)}{\partial x}|_{x=x_{new}}
+# 	\end{cases}
+# $$
+# (notons la mise à jour du gradient en cours de route);
+# - puis, on renverse le moment $p_{new} = -p_{new}$;
+# - enfin, on procède comme pour l'algorithme de Metropolis selon la probabilité d'acceptation du nouvel état  $(x_{new},p_{new})$:
+# $$
+# \Large
+# p_{acc} = \mathrm{min}\left\{1,r=\frac{\tilde{P}(x_{new},p_{new})}{\tilde{P}(x_i,p_i)} \right\}
+# $$
+# avec
+# $$
+# \Large
+# \tilde{P}(x,y) = e^{-H(x,p)} = e^{-V(x)}\times e^{-E_c(p)}
+# $$
+# Cela se fait par tirage uniforme d'un nombre $u$ dans l'intervalle $[0,1]$. Si $u<r$ on accepte $x_{new}$ comme valeur pour $x_{i+1}$, sinon on prend $x_i$. Remarquons le découplage qu'il y a entre les deux variables $x$ et $p$. Notons aussi, que l'on ne garde pas $p_{new}$ par la suite.
+#
+# **NUTS** est une évolution pour aider à déterminer le nombre de steps et la longueur du step pour l'algorithme d'intégration leapfrog.
 
 # ## code simple à-la-main
 
@@ -1004,8 +1098,8 @@ def HMC(mu=0.0,sigma=1.0,n_steps=10,step_size=0.25,initial_position=0.0,n_spl=10
 
 mu = 0
 sigma = 1
-Ns = 20_000
-samples, acc_rate = HMC(n_steps=120,step_size=0.0171, n_spl=Ns, 
+Ns = 10_000
+samples, acc_rate = HMC(n_steps=15,step_size=0.14, n_spl=Ns, 
                       initial_position=scs.uniform.rvs(loc=-3,scale=6),
                       mu=mu,sigma=sigma,dump=False) 
 print('accept rate:',acc_rate)
@@ -1018,7 +1112,9 @@ plt.show()
 
 plt.plot(samples)
 
-np.mean(samples),np.std(samples)
+az.summary(samples)
+
+# ## Apparamement le sampling est bcq plus efficace. Le pb est la sensibilité aux paramètres `n_steps=15,step_size=0.14`. Changez les pour vous faire une idée...
 
 # # NumPyro Lib.
 
@@ -1026,15 +1122,15 @@ import numpyro
 from numpyro.diagnostics import hpdi
 import numpyro.distributions as dist
 from numpyro import handlers
-from numpyro.infer import NUTS, HMC, MCMC, init_to_sample
-
-numpyro.__version__
+from numpyro.infer import HMC, MCMC, init_to_sample
 
 
 # ## Simple gaussian dist.
 
-# +
 class MixtureModel_jax():
+    """
+    gaussian mixture
+    """
     def __init__(self, locs, scales, weights, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.loc = jnp.array([locs]).T
@@ -1054,29 +1150,13 @@ class MixtureModel_jax():
         return jnp.dot(self.weights.T,probs).squeeze()
 
 
-
-# -
-
 def phi(x):
     return x**2
 
 
-def autocorr(x,lags):
-    '''autocorrelation of a signal wrt lags'''
-    mean=x.mean()
-    var=np.var(x)
-    xp=x-mean
-
-    cf=np.fft.fft(xp)
-    sf=cf.conjugate()*cf
-    corr=np.fft.ifft(sf).real/var/len(x)
-
-    return corr[:len(lags)]
-
-
 single_gaussian_model = MixtureModel_jax([0],[1],[1])
 
-Integ_true,_=integrate.quad(lambda x: phi(x)*single_gaussian_model.pdf(x),-7,7)
+Integ_true,_=sc_integrate.quad(lambda x: phi(x)*single_gaussian_model.pdf(x),-7,7)
 
 print("Integ. true: ",Integ_true)
 
@@ -1088,7 +1168,7 @@ kernel = HMC(potential_fn=lambda x: -single_gaussian_model.logpdf(x))  # negativ
 num_samples = 1_000_000
 n_chains    = 1
 mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
-            progress_bar=False)
+            progress_bar=False) # progress_bar=True ralentit bcq... donc ok pour num_samples=1000.
 mcmc.run(rng_key, init_params=jnp.zeros(n_chains))
 mcmc.print_summary()
 samples_1 = mcmc.get_samples()
@@ -1097,7 +1177,7 @@ samples_1 = mcmc.get_samples()
 fig = plt.figure()
 x_axis = np.arange(-5, 5, 0.01)
 #mixture_pdf = jax.vmap(mixture_gaussian_model.pdf)(x_axis)
-plt.hist(samples_1.flatten(), bins=100, density=True);
+plt.hist(np.array(samples_1.squeeze()), bins=100, density=True);
 plt.plot(x_axis, single_gaussian_model.pdf(x_axis),'r-', lw=5, alpha=0.6, label='true pdf')
 plt.xlim([-5,5])
 plt.yscale('log')
@@ -1108,38 +1188,15 @@ phi_spl1 = phi(samples_1)
 Integ_HMC1 = np.mean(phi_spl1)
 print(f"Integ_HMC:{Integ_HMC1:.6e}, err. relat: {np.abs(Integ_HMC1-Integ_true)/Integ_true:.6e}, sample size : {len(samples_1.flatten())}")
 
-# +
-rng_key = jax.random.PRNGKey(42)
-_, rng_key = jax.random.split(rng_key)
+az.ess(np.array(samples_1.squeeze()), relative=True)
 
-kernel = NUTS(potential_fn=lambda x: -single_gaussian_model.logpdf(x))  # negative log
-num_samples = 1_000_000
-n_chains    = 1
-mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
-            progress_bar=False)
-mcmc.run(rng_key, init_params=jnp.zeros(n_chains))
-mcmc.print_summary()
-samples_2 = mcmc.get_samples()
-# -
-
-phi_spl2 = phi(samples_2)
-Integ_NUTS2 = np.mean(phi_spl2)
-print(f"Integ_NUTS:{Integ_NUTS2:.6e}, err. relat: {np.abs(Integ_NUTS2-Integ_true)/Integ_true:.6e}, sample size : {len(samples_2.flatten())}")
-
-lags=range(len(samples_1.flatten())//2)
-plt.plot(lags,autocorr(samples_1.flatten(),lags),label='HMC  auto-corr')
-plt.plot(lags,autocorr(samples_2.flatten(),lags),label='NUTS auto-corr')
-plt.xscale('log')
-plt.grid()
-plt.legend()
-#plt.xlim([0.1,10**6])
-plt.show()
+# ## On a une bonne efficacité de sampling ($22\%$) sur ce cas simple  qui rend compte de l'err. relative.
 
 # ## Mixture of gaussian dist.
 
 mixture_gaussian_model = MixtureModel_jax([0,1.5],[0.5,0.1],[8,2])
 
-Integ_true,_=integrate.quad(lambda x: phi(x)*mixture_gaussian_model.pdf(x),-7,7)
+Integ_true,_=sc_integrate.quad(lambda x: phi(x)*mixture_gaussian_model.pdf(x),-7,7)
 
 print("Integ. true: ",Integ_true)
 
@@ -1147,8 +1204,9 @@ print("Integ. true: ",Integ_true)
 rng_key = jax.random.PRNGKey(42)
 _, rng_key = jax.random.split(rng_key)
 
-kernel = HMC(potential_fn=lambda x: -mixture_gaussian_model.logpdf(x))  # negative log
-num_samples = 100_000
+kernel = HMC(potential_fn=lambda x: -mixture_gaussian_model.logpdf(x),
+            trajectory_length=1.0)  # negative log
+num_samples = 1_000_000
 n_chains    = 1
 mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
             progress_bar=False)
@@ -1160,7 +1218,7 @@ samples_1 = mcmc.get_samples()
 fig = plt.figure()
 x_axis = np.arange(-3, 3, 0.01)
 #mixture_pdf = jax.vmap(mixture_gaussian_model.pdf)(x_axis)
-plt.hist(samples_1.flatten(), bins=100, density=True);
+plt.hist(np.array(samples_1.squeeze()), bins=100, density=True);
 plt.plot(x_axis, mixture_gaussian_model.pdf(x_axis),'r-', lw=5, alpha=0.6, label='true pdf')
 plt.xlim([-3,3])
 plt.title(f"HMC sampling ({len(samples_1.flatten())} spls)")
@@ -1170,156 +1228,18 @@ phi_spl1 = phi(samples_1)
 Integ_HMC1 = np.mean(phi_spl1)
 print(f"Integ_HMC:{Integ_HMC1:.6e}, err. relat: {np.abs(Integ_HMC1-Integ_true)/Integ_true:.6e}, sample size : {len(samples_1.flatten())}")
 
-# +
-rng_key = jax.random.PRNGKey(42)
-_, rng_key = jax.random.split(rng_key)
+az.ess(np.array(samples_1.squeeze()), relative=True)
 
-kernel = NUTS(potential_fn=lambda x: -mixture_gaussian_model.logpdf(x))  # negative log
-num_samples = 100_000
-n_chains    = 1
-mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
-            progress_bar=False)
-mcmc.run(rng_key, init_params=jnp.zeros(n_chains))
-mcmc.print_summary()
-samples_2 = mcmc.get_samples()
-# -
+# ## Moins bonne efficacité de sampling ($3.8\%$) sur ce cas avec pic secondaire. Même si HMC est un progrès par rapport à M-H (rappel: eff. de $0.1\%$) on peut trouver mieux comme méthode.
+#
+# ## Exo: Changer la valeur `trajectory_length=1.0` par exemple `0.5,1.5,2*jnp.pi (default), ...)`. Notez la sensibilité des résultats en termes d'efficacité d'échantillonnage et donc d'erreur relative sur le calcul de l'intégrale.
+#
+#
 
-fig = plt.figure()
-x_axis = np.arange(-3, 3, 0.01)
-#mixture_pdf = jax.vmap(mixture_gaussian_model.pdf)(x_axis)
-plt.hist(samples_2.flatten(), bins=100, density=True);
-plt.plot(x_axis, mixture_gaussian_model.pdf(x_axis),'r-', lw=5, alpha=0.6, label='true pdf')
-plt.xlim([-3,3])
-plt.title(f"NUTS sampling ({len(samples_2.flatten())} spls)")
-plt.show()
-
-phi_spl2 = phi(samples_2)
-Integ_HMC2 = np.mean(phi_spl2)
-print(f"Integ_HMC:{Integ_HMC2:.6e}, err. relat: {np.abs(Integ_HMC2-Integ_true)/Integ_true:.6e}, sample size : {len(samples_2.flatten())}")
-
-# ## Multi-chains
-
-# +
-rng_key = jax.random.PRNGKey(42)
-_, rng_key = jax.random.split(rng_key)
-
-kernel = HMC(potential_fn=lambda x: -mixture_gaussian_model.logpdf(x))  # negative log
-num_samples = 10_000
-n_chains    = 100
-mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
-            progress_bar=False)
-mcmc.run(rng_key, init_params=jax.random.uniform(rng_key,shape=(n_chains,),minval=-3,maxval=3))
-mcmc.print_summary()
-samples_3 = mcmc.get_samples()
-# -
-
-phi_spl3 = phi(samples_3)
-Integ_HMC3 = np.mean(phi_spl3)
-print(f"Integ_HMC:{Integ_HMC3:.6e}, err. relat: {np.abs(Integ_HMC3-Integ_true)/Integ_true:.6e}, sample size : {len(samples_3.flatten())}")
-
-# +
-rng_key = jax.random.PRNGKey(42)
-_, rng_key = jax.random.split(rng_key)
-
-kernel = NUTS(potential_fn=lambda x: -mixture_gaussian_model.logpdf(x))  # negative log
-num_samples = 10_000
-n_chains    = 100
-mcmc = MCMC(kernel, num_warmup=2_000, num_samples=num_samples, num_chains=n_chains, 
-            progress_bar=False)
-mcmc.run(rng_key, init_params=jax.random.uniform(rng_key,shape=(n_chains,),minval=-3,maxval=3))
-mcmc.print_summary()
-samples_4 = mcmc.get_samples()
-# -
-
-phi_spl4 = phi(samples_4)
-Integ_HMC4 = np.mean(phi_spl4)
-print(f"Integ_HMC:{Integ_HMC4:.6e}, err. relat: {np.abs(Integ_HMC4-Integ_true)/Integ_true:.6e}, sample size : {len(samples_4.flatten())}")
-
-lags=range(len(samples_3.flatten())//2)
-plt.plot(lags,autocorr(samples_3.flatten(),lags),label=f'HMC ({n_chains} chains)')
-plt.plot(lags,autocorr(samples_4.flatten(),lags),label=f'NUTS ({n_chains} chains)')
-plt.xscale('log')
-plt.grid()
-plt.legend()
-plt.xlim([2,10**6])
-plt.xlabel('lag')
-plt.ylabel('Auto-corr')
-plt.show()
-
-# # fit de parametres avec NUTS
-
-import corner
-
-param_true = np.array([1.0, 0.0, 0.2, 0.5, 1.5])
-sample_size = 5_000
-sigma_e = param_true[4]          # true value of parameter error sigma
-random_num_generator = np.random.RandomState(0)
-xi = 5*random_num_generator.rand(sample_size)-2.5
-e = random_num_generator.normal(0, sigma_e, sample_size)
-yi = param_true[0] + param_true[1] * xi + param_true[2] * xi**2 + param_true[3] *xi**3 +  e  
-plt.hist2d(xi, yi, bins=50);
+# # Takeaway message:
+# - Si en `1D` on peut calculer des intégrales avec des quadratures (Simpson, Trapèzes, Gauss, Clenshaw-Curtis, etc.) en dimension quelconque on ne peut que procéder des méthodes Monte Carlo d'échantillonnage. On calcule alors des moyennes pondérées.
+# - Dans un premier temps nous avons vu `l'Importance Sampling` en utilisant une pdf auxilaire $q(x)$ qui approxime $p(x)$. Mais ceci ne marche bien que si $q(x)$ est une "bonne " approximtion de $p(x)$ et cela est requis d'autant plus que la dimension $d$ du problème augmente.
+# - En adaptant au coup par coup $q(x)$, on a aboutit à la méthode de `Metropolis-Hastings`. Mais celle-ci bien que souvent employée a une efficacité d'échantillonnage de $0.1\%$ même sur des cas pas trop pathologiques en 1D. Cela est du au caractère de `marche aléatoire` de la méthode.
+# - Une dernière méthode prometteuse vue dans ce nb est celle à base d'équations différentuielles de Hamilton (Hamiltionian Monte carlo, aka HMC). Certes on augmente l'efficacité d'échantillonnage d'un facteur 10, mais il faut bien choisir les paramètres de l'algorithme `leapfrog` (`nombre de steps, et longueur de chaque step`).
 
 
-# +
-# #?dist.Uniform
-# -
-
-def my_model(Xspls,Yspls):
-    a0 = numpyro.sample('a0', dist.Normal(0.,10.))
-    a1 = numpyro.sample('a1', dist.Normal(0.,10.))
-    a2 = numpyro.sample('a2', dist.Normal(0.,10.))
-    a3 = numpyro.sample('a3', dist.Normal(0.,10.))
-    sigma = numpyro.sample('sigma', dist.Uniform(low=0.,high=10.))
-    mu = a0 + a1*Xspls + a2*Xspls**2 + a3*Xspls**3
-    numpyro.sample('obs', dist.Normal(mu, sigma), obs=Yspls)
-
-
-# +
-# Start from this source of randomness. We will split keys for subsequent operations.
-rng_key = jax.random.PRNGKey(0)
-_, rng_key, rng_key1, rng_key2 = jax.random.split(rng_key, 4)
-
-
-# Run NUTS.
-kernel = NUTS(my_model, init_strategy=init_to_sample())
-num_samples = 5_000
-n_chains = 1
-mcmc = MCMC(kernel, num_warmup=1_000, num_samples=num_samples,  
-            num_chains=n_chains,progress_bar=False)
-mcmc.run(rng_key, Xspls=xi, Yspls=yi)
-mcmc.print_summary()
-samples_1 = mcmc.get_samples()
-
-# +
-mpl.rcParams['font.size'] = 12
-ndim = len(samples_1.keys())
-# This is the empirical mean of the sample:
-value2 = np.mean(np.array(list(samples_1.values())),axis=1)
-#True
-value1 = param_true
-
-# Make the base corner plot
-# 68% et 95% quantiles 1D et levels in 2D
-figure = corner.corner(samples_1,quantiles=(0.025, 0.158655, 0.841345, 0.975), levels=(0.68,0.95), 
-                        show_titles=True, title_kwargs={"fontsize": 12}, 
-                        truths=param_true, truth_color='g', color='b'
-                        );
-
-# Extract the axes
-axes = np.array(figure.axes).reshape((ndim, ndim))
-
-# Loop over the diagonal
-for i in range(ndim):
-    ax = axes[i, i]
-    ax.axvline(value2[i], color="r")
-    
-# Loop over the histograms
-for idy in range(ndim):
-    for idx in range(idy):
-        ax = axes[idy, idx]
-        ax.axvline(value2[idx], color="r")
-        ax.axhline(value2[idy], color="r")
-        ax.plot(value2[idx], value2[idy], "sr")
-
-
-plt.savefig("toto.png")

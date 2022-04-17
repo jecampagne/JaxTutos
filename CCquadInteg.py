@@ -84,12 +84,12 @@ class ClenshawCurtisQuad:
                          -(xi-xInmax)*xOutmin)/deltaXIn for xi in self._absc])
         self._absc=tmp
         
-@partial(jit, static_argnums=(0,3,4,5))
-def quadIntegral(f,a,b,quad, f_args=(), f_kargs={}):
+@partial(jit, static_argnums=(0,3))
+def quadIntegral(f,a,b,quad):
     a = jnp.atleast_1d(a)
     b = jnp.atleast_1d(b)
     d = b-a
     xi = a[jnp.newaxis,:]+ jnp.einsum('i...,k...->ik...',quad.absc,d)
-    fi = f(xi, *f_args, **f_kargs)
+    fi = f(xi)
     S = d * jnp.einsum('i...,i...',quad.absw,fi)
     return S.squeeze()
