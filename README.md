@@ -57,6 +57,7 @@ pip install arviz==0.11.4
 pip install GPy==1.10.0
 pip install scikit-learn==1.0.2
 pip install matplotlib_inline
+pip install seaborn==0.11.1
 ```
 
 Un petit test de la version de `jaxlib` ...
@@ -90,6 +91,8 @@ Commençons par `jupyter-helper.sh` où il faut renseigner où se trouve le scri
 source "A REMPLACER"/anaconda3/etc/profile.d/conda.sh
 
 conda activate JaxTutos
+
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
 
 exec python -m ipykernel_launcher "$@"
 ```
