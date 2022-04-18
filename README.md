@@ -88,7 +88,7 @@ Commençons par `jupyter-helper.sh` où il faut renseigner où se trouve le scri
 #!/bin/bash
 
 #echo "jupyter init..."
-source "A REMPLACER"/anaconda3/etc/profile.d/conda.sh
+source "A REMPLACER"/etc/profile.d/conda.sh
 
 conda activate JaxTutos
 
