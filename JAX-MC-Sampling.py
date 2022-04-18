@@ -45,9 +45,16 @@ from CCquadInteg import *
 import arviz as az
 import seaborn as sns
 import pandas  as pd
-
-
 # -
+
+if jax.__version__ < '0.2.26':
+    clear_cache = jax.interpreters.xla._xla_callable.cache_clear
+else:
+    clear_cache = jax._src.dispatch._xla_callable.cache_clear
+
+
+clear_cache()
+
 
 # # Thème: Monte Carlo sampling.
 # en lien avec la note `JaxTutos/note-MCMC-Numpyro-Oct21.pdf` (French)
@@ -100,8 +107,8 @@ axs[1].grid();
 #
 # ![image.png](attachment:b5bd6416-feb6-4f0e-849d-8cd5de4187dd.png)
 
-@partial(jit, static_argnums=(0,1))
-def Integ0(N, f, subkey):
+@partial(jit, static_argnums=(0,))
+def Integ0(N, subkey):
     xi = jax.random.uniform(subkey, (N,), minval=-3,maxval=3)
     Z_hat = jnp.sum(prob(xi))
     return jnp.sum(f(xi))/Z_hat
@@ -111,7 +118,7 @@ key = jax.random.PRNGKey(42)
 Ns = [1000,10000,100000,1000000]
 for n in Ns: 
     key, subkey = jax.random.split(key)
-    I0 = Integ0(n,f,subkey)
+    I0 = Integ0(n,subkey)
     print(n,(I0-Integ_true)/Integ_true)
 
 key = jax.random.PRNGKey(20)
@@ -119,8 +126,10 @@ Ns = np.int32(np.logspace(3,7,50))
 info =[]
 for n in Ns: 
     key, subkey = jax.random.split(key)
-    I0 =  Integ0(n,f,subkey)
+    I0 =  Integ0(n,subkey)
     info.append(I0)
+
+# ## Nb. on pourrait penser que le `for-loop` n'est pas très JAXy. Peut-on s'en passer? Il se trouve que pour `jax.random.uniform(subkey, (n,))`  le `n` devrait être dynamique, or `JAX doesn't support dynamic shape`. Il y a une solution mais qui 1) est très hacky, 2) ne rend pas le code plus efficace donc on oublie...
 
 plt.scatter(Ns,np.array(info),label='Approx.')
 plt.plot(Ns,np.array(info))
@@ -316,7 +325,7 @@ for n in range(3,7):
 # ```
 # *hint*: rappelez vous que l'on n'a pas besoin de connaître la normalisation, ca simplifie beaucoup :)
 
-# + tags=[] jupyter={"source_hidden": true}
+# + tags=[]
 @jit
 def prob_nD(x,R=1):
     r  = jnp.linalg.norm(x,axis=1)
@@ -1243,7 +1252,6 @@ az.ess(np.array(samples_1.squeeze()), relative=True)
 
 # # Extra 
 # Après avoir vu le notebook `JAX-NUTS-regression-piecewise`: au lieu de HMC, on peu utiliser NUTS. Reprendre l'exemple du mélange de 2 gaussiennes et voir ce que cela donne en termes d'efficacité d'échantillonnage.
-
 
 
 
