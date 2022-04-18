@@ -15,6 +15,9 @@ Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques 
 
 # Installation @CCIN2P3
 
+*Attention: l'installation demande du soin et d'aller jusqu'au bout de ce fichier en particulier pour celle(s) et ceux qui auraient l'habitude d'installer des kernels, il y a une procédure ajoutée qui consiste à spécifier l'ordre des PATHs.*
+
+
 ## Git clone du repository
 Dans votre espace de travail quotidien faire
 ```
@@ -136,6 +139,8 @@ Vous devriez vous retrouver avec ce paneau où apparait à gauche une liste de f
 Maintenant nous allons procédé à la vérification de l'installation en activant le notebook `ATestInstall.ipynb` en double-cliquant dessus dans la liste à gauche
 
 ![image](https://user-images.githubusercontent.com/20539759/163125536-0cca0592-c118-4a96-b692-f1d28ae39ca0.png)
+
+# Avant de lancer le kernel
 
 Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit.py` qui doit vous donner cela
 
