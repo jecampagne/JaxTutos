@@ -438,6 +438,45 @@ class Cosmology:
     @property
     def wa(self):
         return self._wa
+
+
+# -
+# $$
+# \Large
+# \begin{align}
+# (H(a)/H0)^2 &= E^2(a) = a^{-3}\Omega_m + a^{-2}\Omega_K + \Omega_{\Lambda} e^{f(a)}  \\
+# f(a) & = -3 (1 + w_0 + w_a) \ln(a) + 3 w_a (a - 1)
+# \end{align}
+# $$
+#
+# Notons que si $w_0=-1$ et $w_a=0$ alors $f(a)=0$.
+#
+# $$
+# \Large
+# \chi(a) =  R_H \int_a^1 \frac{da^\prime}{{a^\prime}^2 E(a^\prime)}
+# $$
+#
+# ## Transverse comoving distance
+# $$
+# \Large
+# f_k(a) = \left\{
+#     \begin{matrix}
+#         R_H \frac{1}{\sqrt{\Omega_k}}\sinh(\sqrt{|\Omega_k|}\chi(a)R_H)&
+#             \mbox{for }\Omega_k > 0 \\
+#         \chi(a)&
+#             \mbox{for } \Omega_k = 0 \\
+#         R_H \frac{1}{\sqrt{\Omega_k}} \sin(\sqrt{|\Omega_k|}\chi(a)R_H)&
+#             \mbox{for } \Omega_k < 0
+#     \end{matrix}
+#     \right.
+# $$
+#
+# ## distance angulaire et de luminosité
+# $$
+# \Large
+#  d_A(a) = a f_k(a) \quad  d_L(a) = f_k(a)/a
+# $$
+
 # +
 def z2a(z):
     """converts from redshift to scale factor"""
@@ -567,19 +606,7 @@ def luminosity_distance(cosmo, a):
 
 # -
 
-# $$
-# f_k(a) = \left\lbrace
-#         \begin{matrix}
-#         R_H \frac{1}{\sqrt{\Omega_k}}\sinh(\sqrt{|\Omega_k|}\chi(a)R_H)&
-#             \mbox{for }\Omega_k > 0 \\
-#         \chi(a)&
-#             \mbox{for } \Omega_k = 0 \\
-#         R_H \frac{1}{\sqrt{\Omega_k}} \sin(\sqrt{|\Omega_k|}\chi(a)R_H)&
-#             \mbox{for } \Omega_k < 0
-#         \end{matrix}
-#         \right.
-# $$ 
-
+# Cosmologie "Standard"
 cosmo_jax = Cosmology(
     Omega_c=0.2545,
     Omega_b=0.0485,
