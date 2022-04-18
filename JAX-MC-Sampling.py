@@ -72,8 +72,6 @@ print("<phi>_true =",Integ_true,"+/-",err)
 err/Integ_true
 
 
-# ### Au passage on peut utiliser le code d'intégration à base de la quadrature de Clenshaw-Curtis (`CCquadInteg.py`)
-
 # ## Maintenant calculons la moyenne de $\phi(x)$ quand $x\sim p(x)$:
 # $$
 # \Large
@@ -148,6 +146,7 @@ plt.show()
 
 # ## Notez bien la dépendance $1/\sqrt{N}$
 
+# Moyenne par decade
 print(f"Ns       err. relat.")
 for n in range(3,7):
     cut = (10**n<=Ns) & (Ns<10**(n+1))
@@ -353,8 +352,8 @@ info2 = []
 for dim in dims:
     key, subkey = jax.random.split(key)
     data = jax.random.multivariate_normal(subkey,
-                                        np.zeros(dim),
-                                        s**2*np.identity(dim),
+                                        jnp.zeros(dim),
+                                        s**2*jnp.identity(dim),
                                         (N,))
     r = jnp.linalg.norm(data,axis=1)
     info1.append(jnp.mean(r))
@@ -388,8 +387,8 @@ def phi_nD(x):
 def importance_sampling_nD(key,N,dim=2,R=1,s=1):
     key, subkey = jax.random.split(key)
     x_Qrnd = jax.random.multivariate_normal(subkey,
-                                            np.zeros(dim),
-                                            s**2*np.identity(dim),
+                                            jnp.zeros(dim),
+                                            s**2*jnp.identity(dim),
                                             (N,))
     
     w = prob_nD(x_Qrnd,R)/qapp_nD(x_Qrnd,s)
