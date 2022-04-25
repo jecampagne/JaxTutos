@@ -123,9 +123,10 @@ print(grad(func)(3., 4.))  # 8.                 # la fonction evaluee en (3,4)
 print(grad(func, argnums=0)(3., 4.))  # 8.      # la derivee par rapport a x evaluee en (3,4)
 print(grad(func, argnums=1)(3., 4.))  # 6       # la derivee par rapport a ye valuee en (3,4)
 print(grad(func, argnums=(0, 1))(3., 4.))  # (8., 6.)  # ici on fait en mm temps la derivée par rapport a x et a y...
-
-
 # -
+
+grad(func)(3., 4.)
+
 
 # essayer avec une autre fonction...
 
@@ -167,7 +168,7 @@ plt.legend();
 
 # ## Descente de Gradient
 
-## @jit
+@jit
 def gradient_descent_step(p, xi, yi, lr=0.1):
     return p - lr * jax.grad(loss_fun)(p, xi, yi)
 
@@ -240,10 +241,30 @@ def f(p,x):
 
 # ## Vectorization partielle: `in-axes`
 
-print(grad(f)({"a":3.,"b":1.},10))
-print(vmap(f, in_axes=({"a": None, "b": 0},None))({"a":1.,"b":jnp.array([1.,2.,3.])},10))
+print(grad(f)({"a":3.,"b":1.},10.))
 
-vmap(f, in_axes=({"a": None, "b": 0},None))({"a":3.,"b":jnp.array([1.,2.,3.])},10)
+print(grad(f, argnums=1)({"a":3.,"b":1.},10.))
+
+print(vmap(f, in_axes=({"a": None, "b": 0},None))({"a":1.,"b":jnp.array([1.,2.,3.])},10.))
+
+vmap(f, in_axes=({"a":0, "b": None},None))({"a":jnp.array([1.,2.,3.]),"b":2.0},10)
+
+
+# +
+#vmap(f, in_axes=({"a":0, "b":1},None))({"a":jnp.array([1.,2.,3.])[:,jnp.newaxis],"b":jnp.array([0.,1.,3.])[:,jnp.newaxis]},10)
+# -
+
+def func(a,b,x):
+    return a**2 + b*x
+
+
+vfunc = vmap(func, in_axes=(0,None,None))
+
+vfunc(jnp.array([1.,2.,3.]), 1.,10.)
+
+vvfunc = vmap(vmap(func, in_axes=(0,None,None)),in_axes=(None,0,None))
+
+vvfunc(jnp.array([1.,2.,3.]),jnp.array([0.,1.]),10.)
 
 # # idem avec un User PyTree
 
@@ -314,7 +335,10 @@ show_example(my_params)
 # - On peut utiliser (grad/vmap...) ses structures autres que les arrays: tuple, liste, dico et user PyTree
 
 # # Exercice:
-# Reprener les méthodes `model(p, x)`, `loss_fun(p, xi, yi)`,  `oneStepNewton(p,xi,yi,lr=0.1)` en changeant la sturture des paramètres `p` (le default est `jnp.array`): ex utiliser un `dictionnary` et/ou une classe sur le modèle de `Params`. 
+# - reprendre la vectorization sur 2 axes avec Dictionaire.
+# - Reprener les méthodes `model(p, x)`, `loss_fun(p, xi, yi)`,  `oneStepNewton(p,xi,yi,lr=0.1)` en changeant la sturture des paramètres `p` (le default est `jnp.array`): ex utiliser un `dictionnary` et/ou une classe sur le modèle de `Params`. 
+#
+#
 
 # # EXTRA qd on aura pratiqué l'exemple de la fratale de Julia
 
