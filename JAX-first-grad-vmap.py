@@ -250,9 +250,7 @@ print(vmap(f, in_axes=({"a": None, "b": 0},None))({"a":1.,"b":jnp.array([1.,2.,3
 vmap(f, in_axes=({"a":0, "b": None},None))({"a":jnp.array([1.,2.,3.]),"b":2.0},10)
 
 
-# +
-#vmap(f, in_axes=({"a":0, "b":1},None))({"a":jnp.array([1.,2.,3.])[:,jnp.newaxis],"b":jnp.array([0.,1.,3.])[:,jnp.newaxis]},10)
-# -
+# # Un peu plus de `in_axis` dans vmap (equivalent Numpy)
 
 def func(a,b,x):
     return a**2 + b*x
@@ -262,11 +260,52 @@ vfunc = vmap(func, in_axes=(0,None,None))
 
 vfunc(jnp.array([1.,2.,3.]), 1.,10.)
 
+# map sur 2 axis
 vvfunc = vmap(vmap(func, in_axes=(0,None,None)),in_axes=(None,0,None))
 
-vvfunc(jnp.array([1.,2.,3.]),jnp.array([0.,1.]),10.)
+vvfunc(jnp.array([1.,2.,3.]),jnp.array([0.,1.,4.,5.]),10.)
+# a:(1,2,3) b: 0
+# a:(1,2,3) b: 1
+# a:(1,2,3) b: 4
+# a:(1,2,3) b: 5
 
-# # idem avec un User PyTree
+
+# equivalent Numpy
+[[func(ai,bj,x=10.) for ai in [1,2,3]] for bj in [0.,1.,4.,5.]]
+
+vmap(func,in_axes=(0,0,None))(jnp.array([1.,2.,3.]),jnp.array([0.,1.,4.]),10.)
+# ici map a,b de meme dimension car
+# a:1 b:0
+# a:2 b:1
+# a:3 b:4
+
+# equivalent Numpy
+[func(ai,bj,x=10.) for ai,bj in zip([1,2,3],[0.,1.,4.,5.])]
+
+# ## On peut vouloir specifier les axes de `a` et `b` qui sont mis ensemble 
+
+vmap(func,in_axes=(0,1,None))(jnp.array([1.,2.,3.]),jnp.array([0.,1.,4.])[jnp.newaxis,:],10.)
+
+#idem
+vmap(func,in_axes=(0,1,None))(jnp.array([1.,2.,3.]),jnp.array([[0.,1.,4.]]),10.)
+
+a = np.array([1.,2.,3.])
+b = np.array([[0.,1.,4.],
+               [1.,2.,8.]])
+vmap(func,in_axes=(0,1,None))(a,b,10.)
+
+a.shape, b.shape
+
+# +
+#a[0]:1  b[0,0]:0 => 1, a[0]:1, b[1,0]:1 => 11 
+#a[1]:2  b[0,1]:1 => 14, a[1]:2, b[1,1]:2 => 24
+#a[2]:3  b[0,2]:4 => 49 , a[2]:3  b[1,2]:8 => 89 
+
+# equivalent Numpy
+[[func(a[i],b[j,i],x=10.) for i in range(a.shape[0])] for j in range(b.shape[0])]
+# -
+
+# # PyTree: une structure user pour que JAX puisse faire du grad/vmap/jit
 
 # +
 from jax.tree_util import register_pytree_node_class
