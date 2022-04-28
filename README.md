@@ -1,6 +1,10 @@
 # JaxTutos
 Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques librairies telles que JaxOptim/Numpyro/...
 
+# Echanges: 
+- Pour discuter vous pouvez utiliser le champ `Dscissions`
+- Pour suggérer des modifications de code et/ou rapporter des bugs: utiliser les traditionels `Issues` & `Pull requests`
+
 # Menu des Notebooks dans l'ordre des Tutos:
 1) `JAX-first-grad-vmap.ipynb` : prise de contact avec l'auto-diff sur un exemple simple, puis quelques illustrations de JAX (vmap/jit) sur un exemple de minimisation avec la méthode de Gradient-Descent, et de Newton
 2) `JAX-Julia_set.ipynb` : à travers l'exmple des fractales de Julia on aborde quelques fonctions JAX/LAX (condition, while-loop) en mirroir d'un code Numpy basique
