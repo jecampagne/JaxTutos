@@ -142,7 +142,7 @@ Maintenant nous allons procédé à la vérification de l'installation en activa
 
 # Avant de lancer le kernel
 
-Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit.py` qui doit vous donner cela
+Avant de lancer le kernel `JaxTutos` qui apparaitra en haut à droite à la place de `NoKernel` nous devons faire un dernier réglage nécessaire pour bypasser l'installation par défault des paths Python du CC.  Pour cela il nous faut double cliquer sur `pathinit_to_TUNE_and_Rename.py` qui doit vous donner cela
 
 ![image](https://user-images.githubusercontent.com/20539759/162968185-dda54cac-db44-4a65-bc2a-9d1b4ca8f45d.png)
 
@@ -151,6 +151,13 @@ Ce sont les lignes suivantes qu'il vous faut changer: la première pour donner l
 rootPath_to_JaxTutos_localrepository = '/sps/lsst/users/campagne/'
 rootPath_to_JaxTutos_conda_env = '/sps/lsst/users/campagne/anaconda3/envs/'
 ```
+
+Une fois mis à jour **renomer** `pathinit_to_TUNE_and_Rename.py`
+```
+mv pathinit_to_TUNE_and_Rename.py pathinit.py
+```
+
+# Lancement (activation) du kernel `JaxTutos`
 
 Ensuite, nous allons activer le kernel "JaxTutos" dans le menu déroulant qui s'ouvre après avoir cliqué sur `NoKernel`
 
