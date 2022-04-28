@@ -194,3 +194,6 @@ Les procédures de Start/reStart/Arrêt/Reconnection... se font via le panel sui
 - Anaconda : https://docs.anaconda.com/anaconda/install/index.html
 - environement anaconda: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
 - PIP : https://docs.python.org/fr/3.8/installing/index.html#basic-usage
+
+# Qq (autres) librairies JAX: 
+- voir le site https://project-awesome.org/n2cholas/awesome-jax 
