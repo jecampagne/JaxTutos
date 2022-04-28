@@ -76,7 +76,7 @@ for iy in range(HAUTEUR):
             Pixels[ix,iy]=0.222*R + 0.666*G + 0.111*B
 
 
-# + jupyter={"outputs_hidden": true} tags=[]
+# + tags=[]
 plt.figure(figsize=(15,15))
 plt.imshow(Pixels,cmap=mpl.cm.jet)
 
@@ -116,7 +116,7 @@ vf(jnp.array([1,2]),jnp.array([0.,2.,3.]))
 def julia(args_vars):
     
     cx,cy, XMIN, XMAX, YMIN, YMAX, LARGEUR, HAUTEUR, MAX_ITERATION = args_vars
-        
+     
     def func(ix,iy):
     
         def body(val):
@@ -150,18 +150,20 @@ def julia(args_vars):
 
     return result
 
+
+
 args = (cx,cy, XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
 tmp = julia(args)
 
-# + jupyter={"outputs_hidden": true} tags=[]
+# + tags=[]
 plt.figure(figsize=(20,20))
 plt.imshow(tmp,cmap=mpl.cm.jet)
 # -
 
-args = (0.3,0.02, XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
+args = (0.3,0.015, XMIN, XMAX, YMIN, YMAX, 4096, 4096, 150)
 tmp = julia(args)
 
-# + jupyter={"outputs_hidden": true} tags=[]
+# + tags=[]
 plt.figure(figsize=(20,20))
 plt.imshow(tmp,cmap=mpl.cm.jet)
 
@@ -188,7 +190,7 @@ plt.imshow(tmp,cmap=mpl.cm.jet)
 #
 # hint: cette fois-ci `u=(0,0,0)`,  et `(c_x, c_y)` doit définit avant la boucle while...
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[] jupyter={"source_hidden": true}
 def mandelbrot(args_vars):
     
     XMIN, XMAX, YMIN, YMAX, LARGEUR, HAUTEUR, MAX_ITERATION = args_vars
@@ -225,13 +227,13 @@ def mandelbrot(args_vars):
     result = mapped(jnp.arange(0, LARGEUR), jnp.arange(0, HAUTEUR))
 
     return result
-# -
 
+# + jupyter={"source_hidden": true} tags=[]
 XMIN, XMAX, YMIN, YMAX = -2, +0.5, -1.25, +1.25
 args = (XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
 tmp = mandelbrot(args)
 
-# + jupyter={"outputs_hidden": true} tags=[]
+# + tags=[]
 plt.figure(figsize=(20,20))
 plt.imshow(tmp,cmap=mpl.cm.jet)
 # -
