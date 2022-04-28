@@ -76,9 +76,12 @@ for iy in range(HAUTEUR):
             Pixels[ix,iy]=0.222*R + 0.666*G + 0.111*B
 
 
+# + jupyter={"outputs_hidden": true} tags=[]
 plt.figure(figsize=(15,15))
 plt.imshow(Pixels,cmap=mpl.cm.jet)
 
+
+# -
 
 # # Une implémentation JAX
 
