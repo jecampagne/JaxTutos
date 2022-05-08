@@ -248,3 +248,5 @@ plt.imshow(tmp,cmap=mpl.cm.jet)
 # # Takeaway message:
 # - comment utiliser les fonctions `jax.lax.cond`, `jax.lax.while` ...
 # - sans changement le code fonctionne (en principe) sous GPU
+
+
