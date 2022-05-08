@@ -9,10 +9,11 @@ Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques 
 1) `JAX-first-grad-vmap.ipynb` : prise de contact avec l'auto-diff sur un exemple simple, puis quelques illustrations de JAX (vmap/jit) sur un exemple de minimisation avec la méthode de Gradient-Descent, et de Newton
 2) `JAX-Julia_set.ipynb` : à travers l'exmple des fractales de Julia on aborde quelques fonctions JAX/LAX (condition, while-loop) en mirroir d'un code Numpy basique
 3) `JAX-AutoDiff-UserCode.ipynb` : on commence par l'usage d'une autre fonction de JAX/LAX (fori_loop); puis on va commencer à implémenter un algorithme d'intégration de Simpson et jouer avec pour montrer la vectorization et l'auto-diff sur un code user. Ensuite en utilisant une methode d'integration plus efficace (Clenshaw-Curtis) on jouera avec une Classe et des Fonctions en lien avec les distances cosmologiques pour voir un aspect d'extension des structures qui sont accessibles à une vectorization et l'auto-diff.  
-4) `JAX-Optim-regression-piecewise.ipynb`: avec ce notebook on explore quelques fonctionalités de la librairie JaxOpt d'optimisation (equivalent de ScipyMinimize). On utilisera un exemple de dataset 1D qui nous sert dans les deux autres nbs.
-5) `JAX-MC-Sampling.ipynb`: passage en revue de méthodes classiques de génération Monte carlo. On le fait à travers notament le calcul d'un intégrale 1D (et aussi la détermination de paramètres en 3D): échantillonnage selon $dx$, `Importance Sampling`, `Metropolis-Hastings`, `HMC` (NUTS en exo extra car vu avec le nb. `JAX-NUTS...`)
-6) `JAX-NUTS-regression-piecewise.ipynb`: en reprenant le dataset 1D du (4) on utilise la librairie Numpyro MCMC NUTS pour sampler une distribution posterior et obtenir les coutours de parametres et des predictions
-7) `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (6) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
+4) `JAX-JIT_in_class.ipynb`: comment utilsier JIT pour des méthodes de classe (par opposition à JIT pour une fonction isolée).
+5) `JAX-Optim-regression-piecewise.ipynb`: avec ce notebook on explore quelques fonctionalités de la librairie JaxOpt d'optimisation (equivalent de ScipyMinimize). On utilisera un exemple de dataset 1D qui nous sert dans les deux autres nbs.
+6) `JAX-MC-Sampling.ipynb`: passage en revue de méthodes classiques de génération Monte carlo. On le fait à travers notament le calcul d'un intégrale 1D (et aussi la détermination de paramètres en 3D): échantillonnage selon $dx$, `Importance Sampling`, `Metropolis-Hastings`, `HMC` (NUTS en exo extra car vu avec le nb. `JAX-NUTS...`)
+7) `JAX-NUTS-regression-piecewise.ipynb`: en reprenant le dataset 1D du (4) on utilise la librairie Numpyro MCMC NUTS pour sampler une distribution posterior et obtenir les coutours de parametres et des predictions
+8) `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (6) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
 
 
 
