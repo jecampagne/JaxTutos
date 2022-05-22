@@ -25,7 +25,10 @@ import jax.scipy as jsc
 
 from jax import grad, jit, vmap
 from jax import jacfwd, jacrev, hessian
+
 import jaxopt
+import optax
+
 jax.config.update("jax_enable_x64", True)
 
 import matplotlib as mpl
@@ -54,11 +57,7 @@ def mean_fn(x, params):
     v  = params["v"]
     k  = params["k"]
     tau =  params["tau"]
-    return jnp.piecewise(
-        x, [x < 0, x >= 0],
-        [lambda x: R0 + v*x, 
-         lambda x: R0 + v*x - k*(1.-jnp.exp(-x/tau))
-        ])
+    return jnp.where(x < 0, R0 + v*x, R0 + v*x - k*(1.-jnp.exp(-x/tau)))
 
 
 par_true={"R0":35.0, "v":2.20, "k":15.5, "tau": 1.0}
@@ -98,18 +97,43 @@ def lik(p,t,R, sigma_obs=1.0):
 
 def get_infos(res, model, t,R):
     params    = res.params
-    fun_min   = res.state.fun_val
+    fun_min   = model(params,t,R)
     jacob_min =jax.jacfwd(model)(params, t,R)
     inv_hessian_min =jax.scipy.linalg.inv(jax.hessian(model)(params, t,R))
     return params,fun_min,jacob_min,inv_hessian_min
 
 
-# ### Au lieu de faire une descente de gradient à la main on utilise la librairie `jaxopt` qui wrape certaines fonctions de `scipy.optimize` (voir le code [ici](https://github.com/google/jaxopt/blob/main/jaxopt/_src/scipy_wrappers.py) )
+# ### Au lieu de faire une descente de gradient à la main on utilise la librairie jaxopt: `GradientDescent`, `optax solver`, `ScipyWrapper`.
+
+gd = jaxopt.GradientDescent(fun=lik, maxiter=1000)
+init_params = jnp.array([18.,1.,10.,1.])
+res = gd.run(init_params,t=tMes, R=RMes)
+
+params,fun_min,jacob_min,inv_hessian_min = get_infos(res, lik, t=tMes,R=RMes)
+print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
+     "\n invH@min:",inv_hessian_min)
+
+opt = optax.adam(0.1)
+solver = jaxopt.OptaxSolver(opt=opt, fun=lik, maxiter=10000)
+init_params = jnp.array([18.,1.,10.,1.])
+res = solver.run(init_params,t=tMes, R=RMes)
+
+params,fun_min,jacob_min,inv_hessian_min = get_infos(res, lik, t=tMes,R=RMes)
+print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
+     "\n invH@min:",inv_hessian_min)
 
 minimizer = jaxopt.ScipyMinimize(fun=lik,method='BFGS',options={'gtol': 1e-6,'disp': False})
 init_params = jnp.array([18.,1.,10.,1.])
 res1 = minimizer.run(init_params, t=tMes, R=RMes)
 params,fun_min,jacob_min,inv_hessian_min = get_infos(res1, lik, t=tMes,R=RMes)
+print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
+     "\n invH@min:",inv_hessian_min)
+
+lbfgsb = jaxopt.ScipyBoundedMinimize(fun=lik, method="L-BFGS-B")
+init_params = jnp.array([18.,1.,10.,1.])
+res2 = lbfgsb.run(init_params, bounds=([10.,0.,0.,0.1],[100.,10.,50.,10.]), 
+                 t=tMes, R=RMes)
+params,fun_min,jacob_min,inv_hessian_min = get_infos(res2, lik, t=tMes, R=RMes)
 print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
      "\n invH@min:",inv_hessian_min)
 
@@ -170,13 +194,13 @@ plt.xlabel(r"$R_0$")
 plt.ylabel(r"$v$")
 plt.show()
 
-# ## Prédiction/error bands... 
+# ## Prédiction/error bands: comment faire un sampling à partir du Hessien 
 
 t_val = np.linspace(-5,5,100)
 
 Rtrue_val = mean_fn(t_val,par_true)
 
-param_spls = jax.random.multivariate_normal(rng_key2,mean=params,cov=inv_hessian_min,shape=(1000,))
+param_spls = jax.random.multivariate_normal(rng_key2,mean=params,cov=inv_hessian_min,shape=(5000,))
 
 func = jax.vmap(lambda x: mean_fn(t_val,{"R0":x[0],"v":x[1],"k":x[2],"tau":x[3]}))
 
@@ -204,7 +228,7 @@ plt.ylabel("R")
 plt.legend()
 plt.grid();
 # -
-# ## Etude du tmin (mminimum) pour $t>0$: 
+# ## Etude du tmin (minimum) pour $t>0$: 
 # $$
 # \Large
 # tmin=\tau \times \log\left(\frac{k}{v\tau}\right)
@@ -222,7 +246,7 @@ inv_hessian_min
 
 rgn_key, new_key = jax.random.split(rng_key)
 
-samples = jax.random.multivariate_normal(new_key, mean=par_min, cov=inv_hessian_min, shape=(1000,)) 
+samples = jax.random.multivariate_normal(new_key, mean=par_min, cov=inv_hessian_min, shape=(5000,)) 
 
 samples = samples.T
 
@@ -236,8 +260,6 @@ tmins = tmin(samples)
 
 fig,ax=plt.subplots(1,1,figsize=(6,6))
 az.plot_posterior({"$T_{min}$":tmins},point_estimate='mean',ax=ax);
-
-grad(tmin)(par_min)
 
 
 # # Contours plots: Fisher forecast
@@ -324,6 +346,48 @@ for i in range(1,npar):
             plot_contours(F, p_true, [j,i],fill=False,color='C0')
             if j==0 and i==1: plt.legend()
 
+import arviz as az
+import corner
+
+param_spls.shape
+
+data = {"R0":param_spls[:,0], "v":param_spls[:,1],"k":param_spls[:,2],"tau":param_spls[:,3]}
+
+# +
+import arviz.labels as azl
+
+labeller = azl.MapLabeller(var_name_map={"R0": r"$R_0$", 
+                                         "v":r"$v$",
+                                         "k":r"$k$",
+                                         "tau":r"$\tau$"})
+
+
+# +
+ax=az.plot_pair(
+        data,
+        kind="kde",
+        labeller=labeller,
+        marginal_kwargs={"plot_kwargs": {"lw":3, "c":"blue", "ls":"-"}},
+        kde_kwargs={
+            "hdi_probs": [0.3, 0.68, 0.9],  # Plot 30%, 68% and 90% HDI contours
+            "contour_kwargs":{"colors":None, "cmap":"Blues", "linewidths":3,
+                              "linestyles":"-"},
+            "contourf_kwargs":{"alpha":0.5},
+        },
+        point_estimate_kwargs={"lw": 3, "c": "b"},
+        marginals=True, textsize=35, point_estimate='median',
+    );
+
+ax[1,0].scatter(par_true["R0"],par_true["v"],c="r",s=100,zorder=10)
+ax[2,0].scatter(par_true["R0"],par_true["k"],c="r",s=100,zorder=10)
+ax[2,1].scatter(par_true["v"],par_true["k"],c="r",s=100,zorder=10)
+ax[3,0].scatter(par_true["R0"],par_true["tau"],c="r",s=100,zorder=10)
+ax[3,1].scatter(par_true["v"],par_true["tau"],c="r",s=100,zorder=10)
+ax[3,2].scatter(par_true["k"],par_true["tau"],c="r",s=100,zorder=10)
+# -
+
+# ## Attention: contrairement au Fisher-plot ici les contours sont "centrés" sur les paramètres "médians" des distributions a posteriori
+
 # # Minimisation avec contrainte
 
 from jaxopt import ProjectedGradient
@@ -408,45 +472,115 @@ ax.set_ylabel("Y")
 ax.set_zlabel("Z")
 ax.zaxis.set_major_locator(LinearLocator(10))
 # A StrMethodFormatter is used automatically
-ax.zaxis.set_major_formatter('{x:.02f}')
+ax.zaxis.set_major_formatter('{x:.0f}')
 
 # Add a color bar which maps values to colors.
 #fig.colorbar(surf, shrink=0.5, aspect=5)
 
 plt.show()
+
+
 # -
 
-# # Exercices:
-# - Comment superposer aux contours Fisher Forecast les coutours obtenus au minimum?
-# *hint*: utiliser la matrice `inv_hessian_min`
-#
-# - Utiliser le minimizer de descente de gradient simple du notebook `Jax-first-grad-vmap` et comparer.
-#
-# - On a utiliser method='BFGS' mais il y en a d'autres, faire joujou avec les options de ScipyMinimize.
-#
-# - Résoudre par la méthode des multiplicateurs de lagrange le problème d'optimisation suivant:
-#
-# Soit une boite cubique de dimensions $(a,b,c)$, trouver les valeurs de ces paramètres pour obtenir **le plus grand volume**, sachant que **la surface extérieure totale** des 6 faces doit être **égale à 24**.
-#
-# *hint*: il y a 4 paramètres $(a,b,c)$ et $\lambda$ le multiplicateur de Lagrange
-# ```python
-# def vol(p):
-#     #le volume
-# def surf(p):
-#     #la surface totale
-# # la contrainte
-# def g(x): return surf(x) - 24 
-# # le lagrangien à optimiser
-# @jit
-# def Lag(p): 
-#     return vol(p[0:3]) - p[3]*g(p[0:3])
-#
-# ```
+# # Méthode avec Root Finding...
+
+# +
+# Volume de la boite 
+def vol(x): 
+    return x[0]*x[1]*x[2]
+# Surface de la boite
+def surf(x):
+    return 2.*(x[0]*x[1]+x[0]*x[2]+x[1]*x[2])
+# Constrainte sur la surface
+def g(x): return surf(x) - 24
+
+#Lagrangien : p[0:3] = (x1,x2,x3), p[3] = multiplicateur de lagrange
+@jax.jit
+def Lag(p): 
+    return vol(p[0:3]) - p[3]*g(p[0:3])
+
+gLag = jax.jacfwd(Lag) #gradient
+# -
+
+rf = jaxopt.ScipyRootFinding(optimality_fun=gLag, method='hybr', tol=1e-3)
+res=rf.run(jnp.array([1.5,0.5,1.0,0.1]))
+print("params:",res.params,f"\nvolume: {vol(res.params):.3f}",
+      f"surface: {surf(res.params):.3f}")
+
+
+def plot_lagland(fig,ax,model,bounds):
+    xmin,xmax,ymin,ymax = bounds
+    grid = x0,y0 = np.mgrid[xmin:xmax:101j,ymin:ymax:101j]
+
+    points = np.swapaxes(grid,0,-1).reshape(-1,2)
+    v = jax.vmap(lambda p: model(p), in_axes = (0))(points)
+    v = np.swapaxes(v.reshape(101,101),0,-1)
+    g=ax.contourf(x0,y0,v, levels = 100,cmap='jet')
+    fig.colorbar(g,ax=ax)
+    ax.contour(x0,y0,v, levels = 20, colors = 'w')
+
+    grid = np.mgrid[xmin:xmax:30j,ymin:ymax:30j]
+    points = np.swapaxes(grid,0,-1).reshape(-1,2)
+    gradients = jax.vmap(
+        jax.grad(
+            lambda p: model(p)
+        ), in_axes = (0)
+    )(points)
+
+    scale = int(10*np.max(gradients))
+    ax.quiver(
+        points[:,0],
+        points[:,1],
+        gradients[:,0],
+        gradients[:,1],
+        angles = 'xy',
+#        scale_units='xy',
+        scale = scale
+    )
+    ax.set_aspect("equal")
+
+
+model = lambda p: Lag(jnp.array([p[0],p[0],p[0],p[1]]))
+fig,ax = plt.subplots(1,1,figsize=(8,8))
+plot_lagland(fig, ax,model,bounds=(1.,3.,-0.5,1.5))
+plt.title("Lagrangien landscape")
+plt.xlabel("dim. boite")
+plt.ylabel(r"$\lambda$")
+plt.show()
 
 # # Takeaway message:
-# - usage de `jaxopt` pour faire de l'optimisation 
+# - usage de `jaxopt` pour faire de l'optimisation: 
+#     - méthode sans contrainte `GradientDescent`, `optax solver`, `ScipyMinimize`, 
+#     - méthode avec contarinte `ScipyBoundedMinimize`, `ProjectedGradient`, 
+#     - méthode `ScipyRootFinding` pour annuler le gradient  
 # - les gradients et matrice Hessienne sont calculés exactement ce qui consolide la détermination des paramètres et des contours.
 # - Fisher forecast: facile!
-# - version paramétrique d'une approximation d'observations
+# - plusieurs façons de présenter des résultats (`arviz` et home-made), loss landscape, gradient-flow 
+
+# # Exercice: résoudre le dernier exemple (méthode lagrangienne)
+# 1) avec une descente de gradient simple: est-ce satisfaisant?
+# 2) avec une descente de grdient avec le hessien: est-ce satisfaisant?
+# hint: Voir le Tutos `JAX-first-grad-vmap.`
+# Prendre les paramètres initiaux:
+# ```
+# p_init = jnp.array([2.,2.,2.,0.2])
+# p_init = jnp.array([1.5,1.5,1.5,1.0])
+# p_init = jnp.array([2.,2.,2.,1.])
+# p_init = jnp.array([1.5,0.5,1.0,0.1])
+# ```
+#
+# Rappels:
+# ```
+# #Gradient Lagrangien
+# gLag = jax.jacfwd(Lag)
+# hLag = jax.hessian(Lag)
+#
+# def solveLagrangian_GD(p,lr=1e-3): 
+#     return p - lr *  gLag(p)
+# def solveLagrangian_Hess(p,lr=0.1): 
+#     return p - lr*jnp.linalg.inv(hLag(p)+0.0001*jnp.eye(4)) @ gLag(p)
+# ```
+#
+# pourquoi ai-je ajouté `0.0001*jnp.eye(4)`?
 
 

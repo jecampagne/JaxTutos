@@ -31,7 +31,10 @@ jax.config.update("jax_enable_x64", True)
 
 from functools import partial
 from typing import Union, Dict, Callable, Optional, Tuple, Any
+# -
 
+
+jax.__version__
 
 # +
 #utile pour clear the cache notament pour voir les recompilation
@@ -99,7 +102,7 @@ clear_cache
 idp=0
 
 objA = A(2.0)
-idp = u_print(idp,objA, objA.a, objA.b)
+idp = u_print(idp,objA.a, objA.b)
 objA.f(10.)
 # -
 
@@ -184,8 +187,11 @@ idp = u_print(idp, objA.a, objA.b)
 # -
 
 # ## Bilan de la méthode `helper`: 
-# ## C'est une $\color{red}{\text{méthode simple et explicite}}$ de mise en oeuvre, et on n'a pas à instruire JAX comment utiliser la class A.
-# ## Maintenant, il devient une affaire de goût de coder un helper par fonction pour utiliser jit. Mais on peut faire de l'encapsulation par fichier pour qu'au moins le code de "A" soit dans celui de la définition de "A".
+# - ## C'est une $\color{red}{\text{méthode simple et explicite}}$ de mise en oeuvre, et on n'a pas à instruire JAX comment utiliser la class A.
+# - ## Maintenant, il devient une affaire de goût de coder un helper par fonction pour utiliser jit. Mais on peut faire de l'encapsulation par fichier pour qu'au moins le code de "A" soit dans celui de la définition de "A".
+#
+# - ## Pb: que faire si la fonction `f` a besoin par exemple d'une autre fonction (soit membre de `A`, soit externe à `A`)?
+#
 
 # # 2nd stratégie: `self` comme static
 # ## c'est une procédure classique qui est souvent proposée
@@ -210,9 +216,9 @@ clear_cache
 idp=0
 
 objA = A(2.0)
-idp = u_print(idp,objA, objA.a, objA.b)
+idp = u_print(idp, objA.a, objA.b)
 objA.f(10.)
-idp = u_print(idp,objA, objA.a, objA.b)
+idp = u_print(idp, objA.a, objA.b)
 res = objA.g()
 print(res)
 
@@ -255,7 +261,7 @@ idp = u_print(idp, objA.a, objA.b)
 
 objA = A(3.0)
 idp = u_print(idp, objA.a, objA.b)
-objA.set_b(new_objA.f(20.))
+objA.set_b(objA.f(20.))
 idp = u_print(idp, objA.a, objA.b)
 
 objA.set_b(objA.f(21.))
@@ -590,7 +596,7 @@ class World:
 
 # By registering 'World' as a pytree, it turns into a transparent container and
 # can be used as an argument to any JAX-transformed functions.
-register_pytree_node(World,
+tree_util.register_pytree_node(World,
                      lambda x: ((x.p, x.v), None),
                      lambda _, tup: World(tup[0], tup[1]))
 
@@ -666,5 +672,7 @@ print(res)
 # - et `fori_loop` qui déclenche la compilation même si on ne le demande pas...
 #
 # - Voir également la doc [to-jit-or-not-to-jit](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html?highlight=Traced%3CShapedArray%3E#to-jit-or-not-to-jit)
+#
+# - Ai-je besoin de l'encapsulation OO (c'est-à-dire faire Class)
 
 
