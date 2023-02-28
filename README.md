@@ -1,17 +1,22 @@
 # JaxTutos
 Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques librairies telles que JaxOptim/Numpyro/...
+This repository provides some notebooks to learn JAX and use some libraries such as JaxOptim/Numpyro/...
 
 # Echanges: 
-- Pour discuter vous pouvez utiliser le champ `Dscissions`
-- Pour suggérer des modifications de code et/ou rapporter des bugs: utiliser les traditionels `Issues` & `Pull requests`
+- Pour discuter vous pouvez utiliser le champ/
+- To discuss you can use :  `Discussions`
 
-# Menu des Notebooks dans l'ordre des Tutos:
+- Pour suggérer des modifications de code et/ou rapporter des bugs: utiliser les traditionels `Issues` & `Pull requests`
+- Tosuggest code changes and/or report bugs use Issues & PR.
+
+# Here a list of Tutos:
 - `JAX_get_started.ipynb` : get a flavour of the coding and exemple of auto-diff
 - `JAX_fractals.ipynb` : throw some fractal images production discover some control flow jax.lax functions
 - `JAX-AutoDiff-UserCode.ipynb` : more on usage of auto diff in real user integration methods  
 - `JAX-MC-Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
 - `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
-- `JAX-Optim-regression-piecewise.ipynb`: avec ce notebook on explore quelques fonctionalités de la librairie JaxOpt d'optimisation (equivalent de ScipyMinimize). On utilisera un exemple de dataset 1D qui nous sert dans les deux autres nbs.
+- `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
+
 
 Not yet ported to Collab.
 
