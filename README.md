@@ -24,11 +24,10 @@ Not yet ported to Collab.
 
 
 ## Installation
+Most of the nbs are running on Colab. (JAX 0.4.4 recently) 
 
-La majorité des nbs tournent sur Colab. (jax 0.3.25 au passge) 
 
-
-Selon l'ordre suivant vous allez procéder à l'installation de l'environement Conda `JaxTutos`
+If you want an environement Conda `JaxTutos`
 ```
 conda create -n JaxTutos python=3.8
 conda activate JaxTutos
@@ -38,19 +37,12 @@ pip install jaxopt==0.3.1
 pip install optax==0.0.1
 pip install corner==2.2.1
 pip install arviz==0.11.4
-pip install GPy==1.10.0
-pip install scikit-learn==1.0.2
+#pip install GPy==1.10.0
+#pip install scikit-learn==1.0.2
 pip install matplotlib_inline
 pip install seaborn==0.11.1
 ```
-
-Un petit test de la version de `jaxlib` ...
-```python
-python -c "import jaxlib; print(jaxlib.__version__)"
-0.3.5
-```
-
-# Docs de packages
+# Docs
 - JAX: https://jax.readthedocs.io
 - numpy : https://numpy.org/doc/stable/reference/index.html
 - Numpyro : https://num.pyro.ai/en/stable/getting_started.html#what-is-numpyro
