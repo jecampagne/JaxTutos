@@ -16,12 +16,11 @@ This repository provides some notebooks to learn JAX and use some libraries such
 - `JAX-MC-Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
 - `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
 - `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
-
+- `JAX-JIT_in_class.ipynb`: how to use JIT for class methods (as opposed to JIT for an isolated function). This is a technical nb.
 
 Not yet ported to Collab.
 
 - `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (6) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
-- `JAX-JIT_in_class.ipynb`: comment utilsier JIT pour des méthodes de classe (par opposition à JIT pour une fonction isolée).
 
 
 ## Installation
