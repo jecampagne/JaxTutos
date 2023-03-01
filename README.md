@@ -18,29 +18,31 @@ This repository provides some notebooks to learn JAX and use some libraries such
 - `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
 - `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
 - `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function). 
-Not yet ported to Collab.
 
-- `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (6) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
+
+# Not yet ported to Collab.
+
+- `JAX-GP-regression-piecewise.ipynb`: a home made Gaussian Processes lib to see differences with Sklearn et GPy.
 
 
 ## Installation
-Most of the nbs are running on Colab. (JAX 0.4.4 recently) 
+The nbs are running on Colab. (JAX 0.4.4 recently) 
 
 
 If you want an environement Conda `JaxTutos`
 ```
 conda create -n JaxTutos python=3.8
 conda activate JaxTutos
-pip install --upgrade "jax[cuda]==0.3.5" -f https://storage.googleapis.com/jax-releases/jax_releases.html
-pip install numpyro==0.9.1
-pip install jaxopt==0.3.1
-pip install optax==0.0.1
+pip install --upgrade "jax[cuda]==0.4.4" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+pip install numpyro==0.10.1
+pip install jaxopt==0.6
+pip install optax==0.1.4
 pip install corner==2.2.1
 pip install arviz==0.11.4
 #pip install GPy==1.10.0
 #pip install scikit-learn==1.0.2
 pip install matplotlib_inline
-pip install seaborn==0.11.1
+pip install seaborn==0.12.2
 ```
 # Docs
 - JAX: https://jax.readthedocs.io
