@@ -11,13 +11,13 @@ This repository provides some notebooks to learn JAX and use some libraries such
 
 # Here a list of Tutos:
 - `JAX_get_started.ipynb` : get a flavour of the coding and exemple of auto-diff
-- `JAX_fractals.ipynb` : throw some fractal images production discover some control flow jax.lax functions
 - `JAX-AutoDiff-UserCode.ipynb` : more on usage of auto diff in real user integration methods  
+- `JAX_fractals.ipynb` : **(GPU better)** throw some fractal images production discover some control flow jax.lax functions
 - `JAX-MC-Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
 - `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
 - `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
-- `JAX-JIT_in_class.ipynb`: how to use JIT for class methods (as opposed to JIT for an isolated function). This is a technical nb.
-
+- `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
+- `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function). 
 Not yet ported to Collab.
 
 - `JAX-GP-regression-piecewise.ipynb`: dans la même philosophie que le (6) on va étudier les Gaussian Processes avec un librairie 'maison' et voir des différences avec Sklearn et GPy.
