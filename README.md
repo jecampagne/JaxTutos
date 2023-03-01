@@ -1,9 +1,10 @@
 # JaxTutos
 This repository provides some notebooks to learn JAX (basics and advenced) and use some libraries such as JaxOptim/Numpyro/...
+
 Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) et utliser quelques librairies telles que JaxOptim/Numpyro/...
 
 # Echanges: 
-- Pour discuter vous pouvez utiliser le champ/
+- Pour discuter vous pouvez utiliser le champ/`Discussions`
 - To discuss you can use :  `Discussions`
 
 - Pour suggérer des modifications de code et/ou rapporter des bugs: utiliser les traditionels `Issues` & `Pull requests`
