@@ -1,13 +1,13 @@
 # JaxTutos
-Ce repository fournit quelques notebooks pour apprendre JAX et utliser quelques librairies telles que JaxOptim/Numpyro/...
-This repository provides some notebooks to learn JAX and use some libraries such as JaxOptim/Numpyro/...
+This repository provides some notebooks to learn JAX (basics and advenced) and use some libraries such as JaxOptim/Numpyro/...
+Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) et utliser quelques librairies telles que JaxOptim/Numpyro/...
 
 # Echanges: 
 - Pour discuter vous pouvez utiliser le champ/
 - To discuss you can use :  `Discussions`
 
 - Pour suggérer des modifications de code et/ou rapporter des bugs: utiliser les traditionels `Issues` & `Pull requests`
-- Tosuggest code changes and/or report bugs use Issues & PR.
+- To suggest code changes and/or report bugs use Issues & PR.
 
 # Here a list of Tutos:
 - `JAX_get_started.ipynb` : get a flavour of the coding and exemple of auto-diff
