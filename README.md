@@ -18,7 +18,8 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
 - `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
 - `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
-- `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function). 
+- `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function).
+- `JAX_PyTree_initialisation.ipynb`: (advenced, technical nb, crash analysed) how to perform variable initilisation wrt the use  
 
 
 # Not yet ported to Collab.
