@@ -33,9 +33,14 @@ import arviz as az
 import GPy
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
-
-
 # -
+
+import matplotlib as mpl
+
+
+
+mpl.__version__
+
 
 # # Thème: usage simple des Gaussian processes (codage maison avec Numpyro)
 #

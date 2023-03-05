@@ -46,7 +46,7 @@ mpl.rcParams['font.size'] = 20
 # Soit le modèle 1D paramétré suivant:
 # $$
 # \Large
-# f(t) = R_0 + v t - \Theta(t)\times k(1-e^{t/\tau})\qquad avec \quad \Theta(t) = 1 (t>=0), 0 (t<0)
+# f(t) = R_0 + v t - \Theta(t)\times k(1-e^{-t/\tau})\qquad avec \quad \Theta(t) = 1 (t\geq 0), 0 (t<0)
 # \\
 # $$
 # On va générer des données bruitées (`forward modeling`) puis on va effectuer de l'`inférence` (estimation).
@@ -118,6 +118,8 @@ solver = jaxopt.OptaxSolver(opt=opt, fun=lik, maxiter=10000)
 init_params = jnp.array([18.,1.,10.,1.])
 res = solver.run(init_params,t=tMes, R=RMes)
 
+par_true
+
 params,fun_min,jacob_min,inv_hessian_min = get_infos(res, lik, t=tMes,R=RMes)
 print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
      "\n invH@min:",inv_hessian_min)
@@ -136,6 +138,8 @@ res2 = lbfgsb.run(init_params, bounds=([10.,0.,0.,0.1],[100.,10.,50.,10.]),
 params,fun_min,jacob_min,inv_hessian_min = get_infos(res2, lik, t=tMes, R=RMes)
 print("params:",params,"\nfun@min:",fun_min,"\njacob@min:",jacob_min,
      "\n invH@min:",inv_hessian_min)
+
+res2
 
 
 # ### On va profiter de l'auto-diff pour ploter la loss-landscape

@@ -394,7 +394,7 @@ def minimzer_bis(loss_fun, x_data, y_data, par_init, method, maxiter=5000, loss_
     return val
 
 
-# + tags=[] jupyter={"source_hidden": true}
+# + tags=[]
 def minimzer_bis(loss_fun, x_data, y_data, par_init, method, maxiter=5000, loss_diff=1e-9):
 
     cond_fun = lambda val: (val[1] < maxiter) & (jnp.abs(val[2]-val[3]) > loss_diff)

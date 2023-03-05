@@ -190,7 +190,7 @@ plt.imshow(tmp,cmap=mpl.cm.jet)
 #
 # hint: cette fois-ci `u=(0,0,0)`,  et `(c_x, c_y)` doit définit avant la boucle while...
 
-# + tags=[] jupyter={"source_hidden": true}
+# + tags=[]
 def mandelbrot(args_vars):
     
     XMIN, XMAX, YMIN, YMAX, LARGEUR, HAUTEUR, MAX_ITERATION = args_vars
@@ -228,7 +228,7 @@ def mandelbrot(args_vars):
 
     return result
 
-# + jupyter={"source_hidden": true} tags=[]
+# + tags=[]
 XMIN, XMAX, YMIN, YMAX = -2, +0.5, -1.25, +1.25
 args = (XMIN, XMAX, YMIN, YMAX, 1024, 1024, 150)
 tmp = mandelbrot(args)
