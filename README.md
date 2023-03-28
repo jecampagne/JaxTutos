@@ -20,6 +20,7 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
 - `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function).
 - `JAX_PyTree_initialisation.ipynb`: (advenced, technical nb, crash analysed) how to perform variable initilisation wrt the use  
+- `JAX_static_traced_var_func.ipynb`: (advenced, technical nb, crash analysed) why/when one needs to use pure Numpy function to make JIT ok
 
 
 # Not yet ported to Collab.
