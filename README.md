@@ -14,13 +14,13 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - `JAX_get_started.ipynb` : get a flavour of the coding and exemple of auto-diff
 - `JAX-AutoDiff-UserCode.ipynb` : more on usage of auto diff in real user integration methods  
 - `JAX_fractals.ipynb` : **(GPU better)** throw some fractal images production discover some control flow jax.lax functions
-- `JAX_MC_Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
-- `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
-- `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
 - `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
 - `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function).
 - `JAX_PyTree_initialisation.ipynb`: (advenced, technical nb, crash analysed) how to perform variable initilisation wrt the use  
 - `JAX_static_traced_var_func.ipynb`: (advenced, technical nb, crash analysed) why/when one needs to use pure Numpy function to make JIT ok
+- `JAX_MC_Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
+- `Numpyro_MC_Sampling`: here we give some simple examples using Numpyro PPL
+- `JAX_jaxopt_optax.ipynb`: some use of JaxOptim & Optax lib.
 
 
 # Not yet ported to Collab.
