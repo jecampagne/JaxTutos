@@ -11,9 +11,10 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - To suggest code changes and/or report bugs use Issues & PR.
 
 # Here a list of Tutos:
-- `JAX_get_started.ipynb` : get a flavour of the coding and exemple of auto-diff
+- [JAX_get_started.ipynb](./JAX_get_started.ipynb) : get a flavour of the coding and exemple of auto-diff
 - `JAX-AutoDiff-UserCode.ipynb` : more on usage of auto diff in real user integration methods  
-- `JAX_fractals.ipynb` : **(GPU better)** throw some fractal images production discover some control flow jax.lax functions
+- `JIT_fractals.ipynb` : **(GPU better)** with some fractal images production discover some control flow jax.lax functions and nested vmap
+- 
 - `JAX_control_flow.ipynb`: jax.lax control flow (fori_loop/scan/while_loop, cond) with crashes analysed: **"always scan when you can!"**
 - `JAX-JIT_in_class.ipynb`: (advenced, technical nb with crashes analysed) how to use JIT for class methods (as opposed to JIT for an isolated function).
 - `JAX_PyTree_initialisation.ipynb`: (advenced, technical nb, crash analysed) how to perform variable initilisation wrt the use  
