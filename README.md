@@ -12,7 +12,7 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 
 # Here the list of Tutos:
 - [JAX_get_started.ipynb](./JAX_get_started.ipynb) : get a flavour of the coding and exemple of auto-diff
-- [JAX-AutoDiff-UserCode.ipynb](./JAX-AutoDiff-UserCode.ipynb) : more on usage of auto diff in  real user-case "integration methods"  
+- [JAX_AutoDiff_UserCode.ipynb](./JAX_AutoDiff_UserCode.ipynb) : more on usage of auto diff in  real user-case "integration methods"  
 - [JIT_fractals.ipynb](./JIT_fractals.ipynb) : **(GPU better)** with some fractal images production discover some control flow jax.lax functions and nested vmap
 - [JAX_control_flow.ipynb](./JAX_control_flow.ipynb): jax.lax control flow (fori_loop/scan/while_loop, cond). Some "crashes" are analysed: **"always scan when you can!"**
 - [JAX-MultiGPus.ipynb](./JAX-MultiGPus.ipynb) : **(4 GPUs)*** (ok on Jean Zay nb. plateform) use the "data sharding module" to distribute arrays and perform parallelization (2D image productions: simple 2d function and revisit of Julia set from `JIT_fractals.ipynb`.
