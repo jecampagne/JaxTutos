@@ -19,8 +19,8 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 # More advanced topics:
 Designed for people with OO thinking (C++/Python), and/or with in mind  to existing code to transform into JAX. Based on real use case I experienced. This is more advenced and technical but with with "crashes" analysed
 - [JAX_JIT_in_class.ipynb](./JAX_JIT_in_class.ipynb): how to use JIT for class methods (as opposed to JIT for an isolated function). 
-- [JAX_PyTree_initialisation.ipynb](./JAX_PyTree_initialisation.ipynb): how to perform variable initilisation in a class
 - [JAX_static_traced_var_func.ipynb](./JAX_static_traced_var_func.ipynb): why and when one needs to use pure Numpy function to make JIT ok
+- [JAX_PyTree_initialisation.ipynb](./JAX_PyTree_initialisation.ipynb): how to perform variable initilisation in a class
 - [JAX_MC_Sampling.ipynb](./JAX_MC_Sampling.ipynb): more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
 # Using JAX & some thrid party libraries for real job
 - [MC_Sampling.ipynb](./MC_Sampling.ipynb): pedagogical nb for Monte Carlo Sampling using different techniques. Beyond the math, one experiences the random number generation in JAX which by itself can be a subject. I implement a simple HMC MCMC both in Python and JAX to see the difference.
