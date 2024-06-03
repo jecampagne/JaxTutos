@@ -18,7 +18,7 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - [JAX-MultiGPus.ipynb](./JAX-MultiGPus.ipynb) : **(4 GPUs)*** (ok on Jean Zay nb. plateform) use the "data sharding module" to distribute arrays and perform parallelization (2D image productions: simple 2d function and revisit of Julia set from `JIT_fractals.ipynb`.
 # More advanced topics:
 Designed for people with OO thinking (C++/Python), and/or with in mind  to existing code to transform into JAX. Based on real use case I experienced. This is more advenced and technical but with with "crashes" analysed
-- [JAX-JIT_in_class.ipynb](./JAX-JIT_in_class.ipynb): how to use JIT for class methods (as opposed to JIT for an isolated function). 
+- [JAX_JIT_in_class.ipynb](./JAX_JIT_in_class.ipynb): how to use JIT for class methods (as opposed to JIT for an isolated function). 
 - [JAX_PyTree_initialisation.ipynb](./JAX_PyTree_initialisation.ipynb): how to perform variable initilisation in a class
 - [JAX_static_traced_var_func.ipynb](./JAX_static_traced_var_func.ipynb): why and when one needs to use pure Numpy function to make JIT ok
 - `JAX_MC_Sampling.ipynb`: more on coding style/method in a use case of Monte Carlo Sampler implementation from scratch
