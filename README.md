@@ -16,7 +16,8 @@ Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) e
 - [JAX_get_started.ipynb](./JAX_get_started.ipynb) : get a flavour of the coding and exemple of auto-diff
 - [JAX_AutoDiff_UserCode.ipynb](./JAX_AutoDiff_UserCode.ipynb) : more on usage of auto diff in  real user-case "integration methods"  
 - [JIT_fractals.ipynb](./JIT_fractals.ipynb) : **(GPU better)** with some fractal images production discover some control flow jax.lax functions and nested vmap
-- [JAX_control_flow.ipynb](./JAX_control_flow.ipynb): jax.lax control flow (fori_loop/scan/while_loop, cond). Some "crashes" are analysed: **"always scan when you can!"**
+- [JAX_control_flow.ipynb](./JAX_control_flow.ipynb): jax.lax control flow (fori_loop/scan/while_loop, cond). Some "crashes" are analysed.
+- [sum_of_image_patches.ipynb](./sum_of_image_patches.ipynb): Exercice: sum patches of identical size from a 2D image. Experience the compilation/execution times differences of 3 methods on CPU (and GPU if possible).
 - [JAX-MultiGPus.ipynb](./JAX-MultiGPus.ipynb) : **(4 GPUs)*** (ok on Jean Zay nb. plateform) use the "data sharding module" to distribute arrays and perform parallelization (2D image productions: simple 2d function and revisit of Julia set from `JIT_fractals.ipynb`.
 ## More advanced topics:
 Designed for people with OO thinking (C++/Python), and/or with in mind  to existing code to transform into JAX. Based on real use case I experienced. This is more advenced and technical but with with "crashes" analysed
