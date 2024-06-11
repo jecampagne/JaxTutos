@@ -1,9 +1,0 @@
-{
-  "display_name": "JaxTutos",
-  "language":     "python",
-  "argv": [
-      "/pbs/home/c/campagne/.local/share/jupyter/kernels/JaxTutos/jupyter-helper.sh",
-      "-f",
-      "{connection_file}"
-  ]
-}
