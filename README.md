@@ -38,6 +38,7 @@ Designed for people with OO thinking (C++/Python), and/or with in mind  to exist
 # Other librairies JAX: 
 - Have a look at  [awesome-jax](https://project-awesome.org/n2cholas/awesome-jax)
 - More Cosmo-centred:
+   - [JaxPM](https://github.com/DifferentiableUniverseInitiative/JaxPM): JAX-powered Cosmological Particle-Mesh N-body Solver
    - [S2FFT](http://www.jasonmcewen.org/project/s2fft/): JAX package for computing Fourier transforms on the sphere and rotation group
    - [JAX-Cosmo](https://github.com/DifferentiableUniverseInitiative/jax_cosmo): a differentiable cosmology library in JAX
    - [JAX-GalSim](https://github.com/GalSim-developers/JAX-GalSim): JAX version (paper in draft version) of the C++ Galsim code (GalSim is open-source software for simulating images of astronomical objects (stars, galaxies) in a variety of ways)
