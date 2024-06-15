@@ -3,6 +3,8 @@ This repository provides some notebooks to learn JAX (basics and advenced) and u
 
 Ce repository fournit quelques notebooks pour apprendre JAX (simple & complex) et utliser quelques librairies telles que JaxOptim/Numpyro/...
 
+This work was partily performed using resources from GENCI–IDRIS (Grant 2024-[AD010413957R1]).
+
 # Questions:  
 - Why JAX?: You need Auto-differention first and want a code accelerated ready on CPU/GPU/TPU devices, you probably already know a bit of Python.
 - Does my code will be scalable? Gemini (ie. the Google ChatGPT alter-ego) is coded in JAX so I guess you will find good framework to get your use-case working nicely.
