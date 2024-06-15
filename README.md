@@ -54,16 +54,16 @@ Most of the nbs are running on Colab. (JAX 0.4.2x)
 
 If you want an environement Conda `JaxTutos` (but this is not garanteed to work due to the local & specific cuda library to be used for the GPU-based nb)
 ```
-conda create -n JaxTutos python=3.8
+conda create -n JaxTutos python [>= 3.8]
 conda activate JaxTutos
 pip install --upgrade "jax[cuda]==<XYZ>" -f https://storage.googleapis.com/jax-releases/jax_releases.html
-pip install numpyro==0.10.1
-pip install jaxopt==0.6
-pip install optax==0.1.4
-pip install corner==2.2.1
-pip install arviz==0.11.4
+pip install numpyro>=0.10.1
+pip install jaxopt>+0.6
+pip install optax>=0.1.4
+pip install corner>=2.2.1
+pip install arviz>=0.11.4
 pip install matplotlib_inline
-pip install seaborn==0.12.2
+pip install seaborn>=0.12.2
 ```
 # Some Docs
 - JAX: https://jax.readthedocs.io
