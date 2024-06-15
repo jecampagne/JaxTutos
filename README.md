@@ -65,6 +65,9 @@ pip install arviz>=0.11.4
 pip install matplotlib_inline
 pip install seaborn>=0.12.2
 ```
+
+Notice that starting JAX v0.4.30 the install changes: see [CHANGELOG](https://github.com/google/jax/blob/main/CHANGELOG.md) 
+
 # Some Docs
 - JAX: https://jax.readthedocs.io
 - numpy : https://numpy.org/doc/stable/reference/index.html
