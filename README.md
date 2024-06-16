@@ -37,7 +37,7 @@ Designed for people with OO thinking (C++/Python), and/or with in mind  to exist
 - [Kaggle TF_JAX Tutos (23 Dec. 2021)](https://www.kaggle.com/code/aakashnain/tf-jax-tutorials-part1): Ok, but pb. JAX  v0.2.26
 - [Keras 3 JAX Backend guide](https://keras.io/guides/): jax==0.4.20 
 
-# Other librairies JAX: 
+# Other JAX librairies: 
 - Have a look at  [awesome-jax](https://project-awesome.org/n2cholas/awesome-jax)
 - More Cosmo-centred:
    - [JaxPM](https://github.com/DifferentiableUniverseInitiative/JaxPM): JAX-powered Cosmological Particle-Mesh N-body Solver
