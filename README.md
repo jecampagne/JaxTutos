@@ -13,6 +13,7 @@ This work was partily performed using resources from GENCI–IDRIS (Grant 2024-[
 
 # Here the list of Tutos in this repo:
 ## A tour of some basics
+- [JAX_Cophy_tuto.ipynb](https://github.com/jecampagne/JaxTutos/blob/main/) : a Tuto on JAX basics given at GDR Cophy 18–20 nov. 2024 IAP)
 - [JAX_get_started.ipynb](./JAX_get_started.ipynb) : get a flavour of the coding and exemple of auto-diff
 - [JAX_AutoDiff_UserCode.ipynb](./JAX_AutoDiff_UserCode.ipynb) : more on usage of auto diff in  real user-case "integration methods"  
 - [JIT_fractals.ipynb](./JIT_fractals.ipynb) : **(GPU better)** with some fractal images production discover some control flow jax.lax functions and nested vmap
